@@ -24,7 +24,6 @@ Auf dem Handy lässt sich Thermikdoku über „Zum Home-Bildschirm“ wie eine A
 - **Unendlich viele Rätsel:** jedes wird neu erzeugt, hat genau eine Lösung und ist ohne Raten lösbar
 - **Vier Schwierigkeitsstufen** von Leicht (5×5) bis Experte (10×10), bewertet nach den nötigen Denkschritten und nach und nach mit den Pilotenrängen freigeschaltet, genau wie Zeitflug, Expedition und Extras
 - **Tipps**, die den nächsten logischen Schritt erklären
-- **Tagesflug** mit Serienzähler
 - **Zeitflug:** so viele Rätsel wie möglich in 5 Minuten
 - **Expedition:** riesige Rätsel mit 11×11 und 12×12 Feldern
 - **Extras** für mehr Punkte: Wolkenflug (ohne Kreuze), Ohne Tipps, Gegenwind (Zeitlimit)

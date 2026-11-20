@@ -76,7 +76,7 @@ const MODS = [
   { key: 'gegenwind', name: 'Gegenwind', icon: '🌬️', bonus: 0.3, desc: 'Zeitlimit: deine Bestzeit ×1,5' },
 ];
 const MOD_BY_KEY = Object.fromEntries(MODS.map((m) => [m.key, m]));
-// Ab welchem Rang etwas freigeschaltet ist (der Tagesflug bleibt immer offen)
+// Ab welchem Rang etwas freigeschaltet ist
 const UNLOCK_RANK = {
   leicht: 1, mittel: 2, schwer: 3, experte: 4,
   wolkenflug: 5, zeitflug: 5, ohnetipps: 6, expedition: 7, gegenwind: 8,
@@ -92,7 +92,6 @@ const unlockedAt = (lvl) => Object.keys(UNLOCK_RANK).filter((k) => UNLOCK_RANK[k
 const WIND_DEFAULT = { leicht: 180, mittel: 300, schwer: 600, experte: 1200, expedition: 1800 };
 const ZEITFLUG_SECONDS = 300;
 const ZEITFLUG_XP = 30;
-const DAILY_DIFF = ['experte', 'leicht', 'mittel', 'mittel', 'schwer', 'schwer', 'experte']; // So..Sa
 
 // ---------- Speicher ----------
 const STORE_KEY = 'thermikdoku.v2';
@@ -101,7 +100,6 @@ function defaults() {
     settings: { sound: true, vibe: true, autoX: false, colorblind: false },
     seenHelp: false,
     stats: {},      // diff -> { solved, best, perfect }
-    daily: {},      // datum -> sterne
     current: {},    // key -> { puzzle, cells, elapsed, hints, mistakes }
     pool: {},       // diff -> vorab erzeugtes Rätsel
     xp: 0,          // Punkte
@@ -116,6 +114,9 @@ const store = (() => {
     return { ...d, ...s, settings: { ...d.settings, ...(s.settings || {}) } };
   } catch { return defaults(); }
 })();
+// Aufräumen: den Tagesflug gibt es nicht mehr
+delete store.daily;
+for (const k of Object.keys(store.current)) if (k.startsWith('D')) delete store.current[k];
 function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch {} }
 setSoundEnabled(store.settings.sound);
 const statsOf = (d) => (store.stats[d] ||= { solved: 0, best: null, perfect: 0 });
@@ -124,7 +125,6 @@ function vibe(p) { if (store.settings.vibe && navigator.vibrate) { try { navigat
 
 // ---------- Hilfsfunktionen ----------
 const fmtTime = (s) => { s = Math.floor(s); const m = Math.floor(s / 60); return `${m}:${String(s % 60).padStart(2, '0')}`; };
-const todayStr = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 // wartet auf das nächste Bild – mit Zeitlimit, falls der Tab im Hintergrund ist
 const nextFrame = () => new Promise((r) => { requestAnimationFrame(() => requestAnimationFrame(r)); setTimeout(r, 60); });
 const randomSeed = () => crypto.getRandomValues(new Uint32Array(1))[0];
@@ -192,12 +192,6 @@ function show(name) {
 }
 
 // ---------- Home ----------
-function dailyStreak() {
-  let d = new Date(); let streak = 0;
-  if (!store.daily[todayStr(d)]) d.setDate(d.getDate() - 1);
-  while (store.daily[todayStr(d)]) { streak++; d.setDate(d.getDate() - 1); }
-  return streak;
-}
 function renderHome() {
   const r = rankInfo(store.xp || 0);
   $('#rank-lvl').textContent = r.lvl;
@@ -223,6 +217,7 @@ function renderHome() {
   // Zeitflug
   const zb = $('[data-action="zeitflug"]');
   zb.hidden = !extras;
+  $('#mode-row').hidden = !extras;
   zb.classList.toggle('locked', !isUnlocked('zeitflug'));
   $('#zeitflug-label').textContent = !isUnlocked('zeitflug') ? `🔒 ab Rang ${UNLOCK_RANK.zeitflug}`
     : store.zeitflug.best ? `Rekord: ${store.zeitflug.best}` : '5 Minuten';
@@ -237,16 +232,11 @@ function renderHome() {
       ${locked ? `<small>Rang ${UNLOCK_RANK[m.key]}</small>` : ''}
     </button>`;
   }).join('');
-  const done = !!store.daily[todayStr()];
-  const streak = dailyStreak();
-  $('[data-action="daily"]').classList.toggle('done-today', done);
-  const dd = DIFFICULTIES[DAILY_DIFF[new Date().getDay()]];
-  $('#daily-label').innerHTML = (done ? 'Heute geschafft' : `Heute: ${dd.name}`) + (streak > 1 ? ` · <span class="streak">🔥</span> ${streak} Tage` : '');
 }
 
 // ---------- Spielzustand ----------
 const G = {
-  key: null, mode: 'free', diff: 'leicht', date: null,
+  key: null, mode: 'free', diff: 'leicht',
   n: 5, regions: null, solution: null, colors: null,
   cells: null, history: [], hints: 0, mistakes: 0,
   elapsed: 0, startedAt: null, done: false,
@@ -304,18 +294,7 @@ async function startGame({ mode, diff, fresh = false }) {
   pauseTimer();
   const token = ++startToken;
   let key, title, sub, getPuzzle;
-  if (mode === 'daily') {
-    const date = todayStr();
-    const day = new Date(date + 'T12:00:00');
-    diff = DAILY_DIFF[day.getDay()];
-    key = 'D' + date;
-    title = 'Tagesflug';
-    sub = `${DIFFICULTIES[diff].name} · ${day.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}`;
-    getPuzzle = () => generate(diff, Number(date.replaceAll('-', '')) * 31 + 7);
-    G.date = date;
-    // alte Tagesflüge aufräumen
-    for (const k of Object.keys(store.current)) if (k.startsWith('D') && k !== key) delete store.current[k];
-  } else if (mode === 'zeitflug') {
+  if (mode === 'zeitflug') {
     diff = 'leicht';
     key = null;
     title = 'Zeitflug';
@@ -816,17 +795,11 @@ function checkWin(info) {
   const stars = errors === 0 ? 3 : errors <= 2 ? 2 : 1;
   let record = '';
   const st = statsOf(G.diff);
-  if (G.mode === 'daily') {
-    store.daily[G.date] = Math.max(store.daily[G.date] || 0, stars);
-    const s = dailyStreak();
-    if (s > 1) record = `🔥 ${s} Tage in Folge!`;
-  } else {
-    st.solved++;
-    if (stars === 3) st.perfect++;
-    if (st.best == null || time < st.best) { if (st.best != null) record = 'Bestzeit!'; st.best = time; }
-  }
+  st.solved++;
+  if (stars === 3) st.perfect++;
+  if (st.best == null || time < st.best) { if (st.best != null) record = 'Bestzeit!'; st.best = time; }
   // Punkte
-  const base = XP_BASE[G.diff] * (G.mode === 'daily' ? 1.5 : 1);
+  const base = XP_BASE[G.diff];
   const mult = stars === 3 ? 2 : stars === 2 ? 1.4 : 1;
   const comboBonus = G.bestCombo >= 2 ? G.bestCombo * 5 : 0;
   const modBonus = MODS.reduce((a, m) => a + (G.mods[m.key] ? m.bonus : 0), 0);
@@ -996,15 +969,14 @@ function showWin(stars, time, record, xp) {
   }
   $('#win-record').textContent = record;
   // Einmaliger, freundlicher Ko-fi-Hinweis nach dem 10. gelösten Flug
-  const totalSolved = Object.values(store.stats).reduce((a, st) => a + (st.solved || 0), 0) + Object.keys(store.daily).length;
+  const totalSolved = Object.values(store.stats).reduce((a, st) => a + (st.solved || 0), 0);
   const kofi = $('#kofi-note');
   kofi.hidden = true;
   if (!store.kofiShown && totalSolved >= 10) {
     store.kofiShown = true; save();
     kofi.hidden = false;
   }
-  $('#win-next').textContent = G.mode === 'daily' ? 'Zum Menü' : zf ? 'Nochmal' : `Neuer Flug · ${DIFFICULTIES[G.diff].name}`;
-  $('[data-action="win-menu"]').style.display = G.mode === 'daily' ? 'none' : '';
+  $('#win-next').textContent = zf ? 'Nochmal' : `Neuer Flug · ${DIFFICULTIES[G.diff].name}`;
   $$('.win-stars .star').forEach((s) => s.classList.remove('on'));
   const before = rankInfo(xp.xpBefore), after = rankInfo(xp.xpBefore + xp.gain);
   const fill = $('#win-fill');
@@ -1013,7 +985,6 @@ function showWin(stars, time, record, xp) {
   const notes = [];
   if (xp.mult > 1) notes.push(`Sterne ×${xp.mult}`);
   if (xp.comboBonus) notes.push(`Combo +${xp.comboBonus}`);
-  if (G.mode === 'daily') notes.push('Tagesflug ×1.5');
   if (xp.modBonus) notes.push(`Extras +${Math.round(xp.modBonus * 100)} %`);
   if (zf) notes.unshift(`${ZEITFLUG_XP} pro Rätsel`);
   $('#win-xp-note').textContent = 'Punkte' + (notes.length ? ' · ' + notes.join(' · ') : '');
@@ -1193,7 +1164,6 @@ document.addEventListener('click', (e) => {
   if (b.matches('.btn, .tool, .icon-btn, .rank')) { b.classList.remove('jelly'); void b.offsetWidth; b.classList.add('jelly'); }
   if (!['undo', 'hint', 'reset'].includes(a)) sfx.click();
   switch (a) {
-    case 'daily': startGame({ mode: 'daily' }); break;
     case 'zeitflug':
       if (!isUnlocked('zeitflug')) { toast(needText('zeitflug')); break; }
       startGame({ mode: 'zeitflug', fresh: true });
@@ -1243,8 +1213,7 @@ document.addEventListener('click', (e) => {
     case 'new-cancel': closeModal('#modal-new'); break;
     case 'next':
       closeModal('#modal-win');
-      if (G.mode === 'daily') show('home');
-      else if (G.mode === 'zeitflug') startGame({ mode: 'zeitflug', fresh: true });
+      if (G.mode === 'zeitflug') startGame({ mode: 'zeitflug', fresh: true });
       else startGame({ mode: 'free', diff: G.diff });
       break;
     case 'win-menu': closeModal('#modal-win'); show('home'); break;

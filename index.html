@@ -44,7 +44,6 @@
     <symbol id="z10" viewBox="0 0 24 24"><path d="M12 1.5S4 10.5 4 15a8 8 0 0 0 16 0c0-4.5-8-13.5-8-13.5Z"/></symbol>
     <symbol id="z11" viewBox="0 0 24 24"><path d="M2 14a10 10 0 0 1 20 0v2H2Z"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8.5" fill="#fff" stroke="currentColor" stroke-width="2.4"/><path d="M12 8.5V13l3 2M9.5 2.5h5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#fff" stroke="currentColor" stroke-width="2.4"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
   </defs>
 </svg>
 
@@ -104,11 +103,7 @@
     <div class="home-play">
       <h3 class="home-label">Wähle deinen Flug</h3>
       <div class="diff-grid" id="diff-grid"></div>
-      <div class="mode-row">
-        <button class="btn btn-sun" data-action="daily">
-          <svg class="btn-ico"><use href="#i-sun"/></svg>
-          <span><span class="btn-big">Tagesflug</span><span class="btn-small" id="daily-label">Heute</span></span>
-        </button>
+      <div class="mode-row" id="mode-row" hidden>
         <button class="btn btn-time" data-action="zeitflug" hidden>
           <svg class="btn-ico"><use href="#i-clock"/></svg>
           <span><span class="btn-big">Zeitflug</span><span class="btn-small" id="zeitflug-label">5 Minuten</span></span>
