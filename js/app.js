@@ -1329,6 +1329,17 @@ function applyDaytime() {
 }
 applyDaytime();
 setInterval(applyDaytime, 60000);
+// Sternenhimmel: unregelmäßig verteilt, verschieden groß und hell, funkeln versetzt
+(function makeStars() {
+  const rng = mulberry32(20261120);
+  const tint = ['#ffffff', '#ffffff', '#fff3c4', '#d6e4ff'];
+  $('#stars').innerHTML = Array.from({ length: 110 }, () => {
+    const big = rng() < 0.08;
+    const s = big ? 3.5 + rng() * 2.5 : 1.4 + rng() * rng() * 2.8;
+    return `<i class="${big ? 'big' : ''}" style="left:${(rng() * 100).toFixed(2)}%;top:${(Math.pow(rng(), 1.4) * 92).toFixed(2)}%;`
+      + `--s:${s.toFixed(1)}px;--c:${tint[Math.floor(rng() * tint.length)]};--t:${(1.6 + rng() * 2.8).toFixed(1)}s;--d:-${(rng() * 4).toFixed(1)}s"></i>`;
+  }).join('');
+})();
 document.addEventListener('visibilitychange', () => { if (!document.hidden) applyDaytime(); });
 
 // ---------- Start ----------

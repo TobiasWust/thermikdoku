@@ -38,6 +38,7 @@ html, body {
 button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; padding: 0; }
 svg { display: block; }
 img { -webkit-user-drag: none; user-select: none; }
+[hidden] { display: none !important; }
 .defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 /* ---------- Himmel ---------- */
@@ -123,18 +124,21 @@ img { -webkit-user-drag: none; user-select: none; }
     radial-gradient(circle at 85% 12%, rgba(255, 244, 194, .25), transparent 35%),
     linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 55%, var(--sky-bot) 100%);
 }
-[data-daytime="nacht"] .sky-dots {
-  opacity: .9;
-  /* drei versetzte Raster mit krummen Abständen wirken wie zufällig verteilte Sterne */
-  background-image:
-    radial-gradient(#fff 1.5px, transparent 2px),
-    radial-gradient(rgba(255, 240, 180, .95) 1.1px, transparent 1.6px),
-    radial-gradient(rgba(200, 220, 255, .8) .9px, transparent 1.4px);
-  background-size: 97px 113px, 61px 71px, 43px 37px;
-  background-position: 13px 29px, 41px 7px, 23px 17px;
-  animation: twinkle 3s ease-in-out infinite alternate;
+[data-daytime="nacht"] .sky-dots { opacity: 0; }
+/* Sterne: zufällig verteilt (per JS erzeugt), nur nachts sichtbar */
+.stars { position: absolute; inset: 0; opacity: 0; transition: opacity 2s; pointer-events: none; }
+[data-daytime="nacht"] .stars { opacity: 1; }
+.stars i {
+  position: absolute; width: var(--s); height: var(--s); border-radius: 50%;
+  background: var(--c, #fff); box-shadow: 0 0 calc(var(--s) * 1.5) rgba(255, 255, 255, .6);
+  animation: twinkle var(--t) ease-in-out var(--d) infinite alternate;
 }
-@keyframes twinkle { to { opacity: .55; } }
+.stars i.big { border-radius: 0; background: none; box-shadow: none; width: calc(var(--s) * 3); height: calc(var(--s) * 3); }
+.stars i.big::before {
+  content: ""; position: absolute; inset: 0; background: var(--c, #fff);
+  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+}
+@keyframes twinkle { from { opacity: 1; } to { opacity: .25; transform: scale(.7); } }
 [data-daytime="nacht"] .sun { opacity: 0; transform: translateY(60px); }
 [data-daytime="nacht"] .moon { opacity: 1; transform: none; }
 [data-daytime="nacht"] .hills path { filter: brightness(.5) saturate(.7) hue-rotate(20deg); }
