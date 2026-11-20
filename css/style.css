@@ -81,6 +81,66 @@ img { -webkit-user-drag: none; user-select: none; }
 
 .hills { position: absolute; bottom: -2px; left: 0; width: 100%; height: 20vh; min-height: 110px; }
 
+/* ---------- Tageszeit (wird per JS aus der echten Uhrzeit gesetzt) ---------- */
+.sky { transition: background-color 2s; }
+.sun, .moon { transition: top 2s ease, opacity 2s ease, transform 2s ease; }
+.moon {
+  position: absolute; top: calc(var(--safe-t) + 74px); right: 7%; width: 84px; height: 84px;
+  opacity: 0; transform: translateY(40px); animation: sunBob 4s ease-in-out infinite;
+}
+.hills path, .cloud img, .sky-glider { transition: filter 2s, opacity 2s; }
+
+[data-daytime="morgen"] {
+  --sky-top: #9fc7f2; --sky-mid: #f9c9c0; --sky-bot: #ffe9c7;
+}
+[data-daytime="morgen"] .sky {
+  background:
+    radial-gradient(circle at 18% 30%, rgba(255, 226, 160, .8), transparent 45%),
+    linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 55%, var(--sky-bot) 100%);
+}
+[data-daytime="morgen"] .sun { top: calc(var(--safe-t) + 120px); right: auto; left: 6%; }
+[data-daytime="morgen"] .sun .face circle { fill: #ffc83f; }
+[data-daytime="morgen"] .hills path { filter: saturate(.85) hue-rotate(-8deg); }
+
+[data-daytime="abend"] {
+  --sky-top: #6f6fc4; --sky-mid: #f4919a; --sky-bot: #ffc98a;
+}
+[data-daytime="abend"] .sky {
+  background:
+    radial-gradient(circle at 82% 34%, rgba(255, 190, 110, .85), transparent 45%),
+    linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 55%, var(--sky-bot) 100%);
+}
+[data-daytime="abend"] .sun { top: calc(var(--safe-t) + 130px); }
+[data-daytime="abend"] .sun .face circle, [data-daytime="abend"] .sun .rays { fill: #ffa43f; }
+[data-daytime="abend"] .hills path { filter: brightness(.85) saturate(.9) hue-rotate(-15deg); }
+[data-daytime="abend"] .cloud img { filter: sepia(.35) saturate(1.4) hue-rotate(-20deg); }
+
+[data-daytime="nacht"] {
+  --sky-top: #141c3a; --sky-mid: #26346a; --sky-bot: #3e4c8a;
+}
+[data-daytime="nacht"] .sky {
+  background:
+    radial-gradient(circle at 85% 12%, rgba(255, 244, 194, .25), transparent 35%),
+    linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 55%, var(--sky-bot) 100%);
+}
+[data-daytime="nacht"] .sky-dots {
+  opacity: .9;
+  /* drei versetzte Raster mit krummen Abständen wirken wie zufällig verteilte Sterne */
+  background-image:
+    radial-gradient(#fff 1.5px, transparent 2px),
+    radial-gradient(rgba(255, 240, 180, .95) 1.1px, transparent 1.6px),
+    radial-gradient(rgba(200, 220, 255, .8) .9px, transparent 1.4px);
+  background-size: 97px 113px, 61px 71px, 43px 37px;
+  background-position: 13px 29px, 41px 7px, 23px 17px;
+  animation: twinkle 3s ease-in-out infinite alternate;
+}
+@keyframes twinkle { to { opacity: .55; } }
+[data-daytime="nacht"] .sun { opacity: 0; transform: translateY(60px); }
+[data-daytime="nacht"] .moon { opacity: 1; transform: none; }
+[data-daytime="nacht"] .hills path { filter: brightness(.5) saturate(.7) hue-rotate(20deg); }
+[data-daytime="nacht"] .cloud img { filter: brightness(.7) saturate(.6) hue-rotate(10deg); opacity: .8; }
+[data-daytime="nacht"] .sky-glider { opacity: 0; }
+
 /* ---------- Screens ---------- */
 #app { position: fixed; inset: 0; z-index: 1; }
 .screen {
@@ -216,6 +276,9 @@ img { -webkit-user-drag: none; user-select: none; }
 }
 .diff-card:active { transform: translateY(5px); box-shadow: 0 0 0 var(--ink); }
 .diff-card.wiggle { animation: wiggle .7s ease; }
+.diff-card.locked { background: linear-gradient(170deg, #fff 45%, #e6e9ef); }
+.diff-card.locked .diff-icons, .diff-card.locked .diff-name, .diff-card.locked .diff-size { filter: grayscale(1); opacity: .45; }
+.diff-lock { position: absolute; top: 8px; right: 10px; font-size: 20px; }
 @keyframes cardIn { from { opacity: 0; transform: translateY(50px) scale(.7) rotate(-6deg); } }
 @keyframes wiggle { 20% { transform: rotate(-4deg) scale(1.04); } 40% { transform: rotate(3deg); } 60% { transform: rotate(-2deg); } 80% { transform: rotate(1deg); } }
 .diff-mittel { --tone: #3d8bff; --tone-soft: #dce9ff; }
@@ -235,6 +298,57 @@ img { -webkit-user-drag: none; user-select: none; }
 }
 @keyframes badgePulse { 50% { transform: scale(1.12) rotate(-4deg); } }
 .home-play .btn { animation: cardIn .6s 1.2s cubic-bezier(.2, 1.5, .4, 1) both; min-height: 58px; }
+
+/* ---------- Extras: Expedition, Zeitflug, Modifikatoren ---------- */
+.diff-expedition { --tone: #ff4f8b; --tone-soft: #ffe0ec; grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; }
+.diff-expedition .diff-icons { grid-row: span 3; }
+.mode-row { display: flex; gap: 12px; }
+.mode-row .btn { flex: 1; min-width: 0; }
+.has-extras .mode-row .btn { padding: 8px 10px; gap: 8px; }
+.has-extras .mode-row .btn-big { font-size: 18px; }
+.has-extras .mode-row .btn-small { font-size: 12px; }
+.has-extras .mode-row .btn-ico { width: 24px; height: 24px; }
+.btn-time { --base: linear-gradient(180deg, #8fe3ff, #4cc3f5); color: var(--ink); }
+.btn-time.locked { --base: linear-gradient(180deg, #fff, #e6e9ef); color: var(--ink-soft); }
+.btn-time.locked .btn-ico, .btn-time.locked .btn-big { opacity: .5; }
+.mods { display: flex; flex-direction: column; gap: 6px; animation: cardIn .6s 1.3s cubic-bezier(.2, 1.5, .4, 1) both; }
+.mods-label { font-size: 13px; font-weight: 900; color: #fff; text-align: center; -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; }
+.mods-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mod {
+  display: grid; grid-template-columns: auto 1fr; column-gap: 5px; align-items: center; text-align: left; padding: 4px 6px 5px;
+  background: var(--card); border: 2.5px solid var(--ink); border-radius: 16px; box-shadow: var(--pop-sm);
+  font-size: 12.5px; font-weight: 900; line-height: 1.15;
+  transition: transform .1s, box-shadow .1s, background .2s;
+}
+.mod:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
+.mod { min-height: 40px; }
+.mod-ico { grid-row: span 2; font-size: 17px; line-height: 1; filter: grayscale(1); opacity: .55; transition: filter .2s, opacity .2s; }
+.mod small { font-size: 10.5px; font-weight: 800; color: var(--ink-soft); }
+.mod.on { background: linear-gradient(180deg, #fff6c8, var(--yellow)); }
+.mod.on .mod-ico { filter: none; opacity: 1; }
+.mod.on small { color: var(--ink); }
+.mod.locked { background: #eef1f5; color: var(--ink-soft); }
+.mod.locked .mod-ico { filter: none; opacity: 1; }
+/* mit Extras wird es eng: Untertitel weg, Logo kleiner */
+#screen-home.has-extras .subtitle { display: none; }
+#screen-home.has-extras .logo-glider { width: min(30vw, 120px, 12vh); }
+#screen-home.has-extras .home-label { display: none; }
+#screen-home.has-extras .home-play { gap: 10px; }
+#screen-home.has-extras .diff-card { padding: 7px 11px 8px; }
+#screen-home.has-extras .diff-icons, #screen-home.has-extras .diff-icons img { height: 24px; width: auto; }
+@media (max-height: 720px) {
+  #screen-home.has-extras .logo-glider, #screen-home.has-extras .mods-label { display: none; }
+  #screen-home.has-extras .mode-row .btn { min-height: 52px; }
+}
+
+.timer.countdown { background: #e3f6ff; }
+.timer.countdown::before { content: "🌬️ "; font-size: 12px; }
+.timer.zeit::before { content: "⏱️ "; }
+.timer.low { background: #ffd6de; animation: timerPulse 1s ease-in-out infinite; }
+@keyframes timerPulse { 50% { transform: scale(1.08); } }
+.no-hints .tool-hint { display: none; }
+.title-mods { -webkit-text-stroke: 0; font-size: 16px; vertical-align: 2px; }
+.modal-text { margin: 0; font-size: 14.5px; font-weight: 700; color: var(--ink-soft); line-height: 1.4; }
 .streak { display: inline-block; margin-left: 4px; animation: flame 1s ease-in-out infinite alternate; }
 @keyframes flame { to { transform: scale(1.25) rotate(8deg); } }
 .app-footer {
@@ -340,6 +454,13 @@ img { -webkit-user-drag: none; user-select: none; }
 .cell::before { content: ""; position: absolute; inset: 0; background: #fff; opacity: 0; transition: opacity .15s; pointer-events: none; }
 .cell.press::before { opacity: .45; transition: none; }
 
+/* Farbenblind-Modus: kleines Symbol oben links in jedem Feld */
+.zsym { display: none; }
+.colorblind .zsym {
+  display: block; position: absolute; left: 8%; top: 8%; width: 36%; height: 36%;
+  fill: var(--ink); opacity: .6; pointer-events: none;
+}
+.colorblind .board.mini .zsym { width: 26%; height: 26%; }
 .cell .x { width: 40%; height: 40%; pointer-events: none; animation: xIn .3s cubic-bezier(.2, 1.8, .4, 1); }
 @keyframes xIn { from { transform: scale(0) rotate(-120deg); opacity: 0; } }
 .cell.auto:not(.has-x):not(.has-g)::after {
@@ -555,6 +676,7 @@ img { -webkit-user-drag: none; user-select: none; }
 .rankup-card h2 { margin: 2px 0 4px; font-size: 32px; font-weight: 900; color: var(--yellow); -webkit-text-stroke: 7px var(--ink); paint-order: stroke fill; }
 .rankup-card img { width: 120px; height: 120px; animation: bob 1.6s ease-in-out infinite; }
 .rankup-card .lvl { font-size: 17px; font-weight: 900; }
+.rankup-card .unlock { margin-top: 8px; padding: 6px 12px; border-radius: 14px; background: var(--yellow); border: 2.5px solid var(--ink); font-size: 14px; font-weight: 800; }
 .rankup-card p { margin: 8px 0 0; font-size: 13px; color: var(--ink-soft); }
 
 .toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 4px; border-bottom: 2px dashed rgba(43, 58, 85, .15); text-align: left; font-weight: 900; font-size: 17px; }

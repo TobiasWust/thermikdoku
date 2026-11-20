@@ -74,22 +74,56 @@ function growRegions(n, placement, rng) {
   return regions;
 }
 
+// Zählt Lösungen (bis limit). Wählt immer die Reihe, Spalte oder Zone mit den
+// wenigsten freien Plätzen – so bleibt die Suche auch bei 12×12 schnell.
 export function solve(regions, n, limit = 2) {
+  const N = n * n;
   const sols = [];
-  const colUsed = new Array(n).fill(false);
-  const regUsed = new Array(n).fill(false);
+  const cand = new Uint8Array(N).fill(1);
+  const units = [];
+  for (let r = 0; r < n; r++) units.push(Array.from({ length: n }, (_, c) => r * n + c));
+  for (let c = 0; c < n; c++) units.push(Array.from({ length: n }, (_, r) => r * n + c));
+  const zones = Array.from({ length: n }, () => []);
+  for (let i = 0; i < N; i++) zones[regions[i]].push(i);
+  units.push(...zones);
+  const used = new Uint8Array(units.length);
   const pos = new Array(n);
-  function rec(r) {
+  const trail = [];
+  function place(i) {
+    const r = (i / n) | 0, c = i % n;
+    const mark = trail.length;
+    const kill = (j) => { if (cand[j]) { cand[j] = 0; trail.push(j); } };
+    for (const j of units[r]) kill(j);
+    for (const j of units[n + c]) kill(j);
+    for (const j of zones[regions[i]]) kill(j);
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+      const rr = r + dr, cc = c + dc;
+      if (rr >= 0 && cc >= 0 && rr < n && cc < n) kill(rr * n + cc);
+    }
+    used[r] = used[n + c] = used[2 * n + regions[i]] = 1;
+    pos[r] = c;
+    return mark;
+  }
+  function unplace(i, mark) {
+    const r = (i / n) | 0, c = i % n;
+    while (trail.length > mark) cand[trail.pop()] = 1;
+    used[r] = used[n + c] = used[2 * n + regions[i]] = 0;
+  }
+  function rec(placed) {
     if (sols.length >= limit) return;
-    if (r === n) { sols.push(pos.slice()); return; }
-    for (let c = 0; c < n; c++) {
-      if (colUsed[c]) continue;
-      const g = regions[r * n + c];
-      if (regUsed[g]) continue;
-      if (r > 0 && Math.abs(pos[r - 1] - c) <= 1) continue;
-      colUsed[c] = regUsed[g] = true; pos[r] = c;
-      rec(r + 1);
-      colUsed[c] = regUsed[g] = false;
+    if (placed === n) { sols.push(pos.slice()); return; }
+    let best = -1, bestCount = Infinity;
+    for (let u = 0; u < units.length; u++) {
+      if (used[u]) continue;
+      let k = 0;
+      for (const j of units[u]) k += cand[j];
+      if (k === 0) return; // Sackgasse
+      if (k < bestCount) { bestCount = k; best = u; if (k === 1) break; }
+    }
+    for (const i of units[best].filter((j) => cand[j])) {
+      const mark = place(i);
+      rec(placed + 1);
+      unplace(i, mark);
       if (sols.length >= limit) return;
     }
   }
@@ -129,25 +163,31 @@ export function generatePuzzle(n, seed) {
       if (sols.length === 1) {
         return { n, regions, solution: placement, colorSeed: Math.floor(rng() * 1e9) };
       }
-      const alt = sols.find((s) => s.some((c, r) => c !== placement[r]));
-      const rows = shuffle([...Array(n).keys()].filter((r) => alt[r] !== placement[r]), rng);
-      let moved = false;
-      for (const r of rows) {
-        const cell = r * n + alt[r];
-        const A = regions[cell];
-        const c = alt[r];
-        const neigh = [];
-        for (const [dr, dc] of DIRS) {
-          const rr = r + dr, cc = c + dc;
-          if (rr < 0 || cc < 0 || rr >= n || cc >= n) continue;
-          const B = regions[rr * n + cc];
-          if (B !== A && !neigh.includes(B)) neigh.push(B);
+      // Ein Feld einer anderen Lösung in eine Nachbarzone schieben, damit diese Lösung wegfällt.
+      // Klappt das bei der ersten anderen Lösung nirgends, weitere Lösungen durchprobieren.
+      const tryAlt = (alt) => {
+        const rows = shuffle([...Array(n).keys()].filter((r) => alt[r] !== placement[r]), rng);
+        for (const r of rows) {
+          const cell = r * n + alt[r];
+          const A = regions[cell];
+          const c = alt[r];
+          const neigh = [];
+          for (const [dr, dc] of DIRS) {
+            const rr = r + dr, cc = c + dc;
+            if (rr < 0 || cc < 0 || rr >= n || cc >= n) continue;
+            const B = regions[rr * n + cc];
+            if (B !== A && !neigh.includes(B)) neigh.push(B);
+          }
+          if (!neigh.length || !connectedWithout(regions, n, A, cell)) continue;
+          regions[cell] = neigh[Math.floor(rng() * neigh.length)];
+          return true;
         }
-        if (!neigh.length || !connectedWithout(regions, n, A, cell)) continue;
-        regions[cell] = neigh[Math.floor(rng() * neigh.length)];
-        moved = true;
-        break;
-      }
+        return false;
+      };
+      const isAlt = (s) => s.some((c, r) => c !== placement[r]);
+      let moved = tryAlt(sols.find(isAlt));
+      // (lohnt sich erst bei großen Feldern, kleine starten lieber neu)
+      if (!moved && n >= 11) for (const alt of solve(regions, n, 24).filter(isAlt)) if ((moved = tryAlt(alt))) break;
       if (!moved) break;
     }
   }
@@ -344,6 +384,7 @@ export const DIFFICULTIES = {
   mittel:  { name: 'Mittel',  place: 'Hausberg',   sizes: [6, 7],  minTech: 3, maxTech: 3, icons: 2 },
   schwer:  { name: 'Schwer',  place: 'Alpenpass',  sizes: [8],     minTech: 4, maxTech: 5, icons: 3 },
   experte: { name: 'Experte', place: 'Himalaya',   sizes: [9, 10], minTech: 4, maxTech: 5, minScore: 30, icons: 4 },
+  expedition: { name: 'Expedition', place: 'Karakorum', sizes: [11, 12], minTech: 4, maxTech: 5, minScore: 40, icons: 4 },
 };
 
 // Erzeugt ein eindeutiges, rein logisch lösbares Rätsel der gewünschten Schwierigkeit.
@@ -353,7 +394,8 @@ export function generateForDifficulty(diffKey, seed) {
   let fallback = null;
   for (let attempt = 0; attempt < 400; attempt++) {
     const n = d.sizes[Math.floor(rng() * d.sizes.length)];
-    const p = generatePuzzle(n, Math.floor(rng() * 2 ** 31));
+    let p;
+    try { p = generatePuzzle(n, Math.floor(rng() * 2 ** 31)); } catch { continue; }
     const g = gradePuzzle(n, p.regions);
     if (!g.ok) continue; // braucht Raten -> verwerfen
     const fits = g.maxTech >= d.minTech && g.maxTech <= d.maxTech && (!d.minScore || g.score >= d.minScore);
