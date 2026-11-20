@@ -303,8 +303,8 @@ function buildBoardInto(el, n, regions, colors) {
   el.innerHTML = '';
   el.style.setProperty('--n', n);
   el.style.setProperty('--thick', n <= 6 ? '3px' : n <= 8 ? '2.5px' : '2px');
-  const thick = 'var(--thick) solid var(--ink)';
-  const thin = '1px solid var(--thin)';
+  // Linien als Innenschatten: sie belegen keinen Platz, so liegt der Glanz in jedem Feld gleich hoch
+  const edge = (isZone) => isZone ? ['var(--thick)', 'var(--ink)'] : ['1px', 'var(--thin)'];
   const els = [];
   for (let i = 0; i < n * n; i++) {
     const r = (i / n) | 0, c = i % n;
@@ -312,8 +312,13 @@ function buildBoardInto(el, n, regions, colors) {
     d.className = 'cell';
     d.dataset.i = i;
     d.style.setProperty('--rc', colors[regions[i]]);
-    if (r > 0) d.style.borderTop = regions[i] !== regions[i - n] ? thick : thin;
-    if (c > 0) d.style.borderLeft = regions[i] !== regions[i - 1] ? thick : thin;
+    if (r > 0) { const [w, col] = edge(regions[i] !== regions[i - n]); d.style.setProperty('--bt', w); d.style.setProperty('--bct', col); }
+    if (c > 0) { const [w, col] = edge(regions[i] !== regions[i - 1]); d.style.setProperty('--bl', w); d.style.setProperty('--bcl', col); }
+    // Kreuzungspunkt füllen, wenn eine Zonenlinie von oben oder links in die Ecke läuft
+    if (r > 0 && c > 0) {
+      const tl = regions[i - n - 1];
+      if (tl !== regions[i - n] || tl !== regions[i - 1]) d.style.setProperty('--corner', 'var(--ink)');
+    }
     el.appendChild(d);
     els.push(d);
   }
