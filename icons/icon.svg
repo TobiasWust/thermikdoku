@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="s" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4aa8ec"/>
+      <stop offset="1" stop-color="#cfeeff"/>
+    </linearGradient>
+    <clipPath id="cc"><path d="M6 40 C 22 8, 78 8, 94 40 C 80 30, 20 30, 6 40 Z"/></clipPath>
+  </defs>
+  <rect width="512" height="512" fill="url(#s)"/>
+  <path d="M0 512 L0 420 L120 340 L210 400 L300 320 L400 390 L512 350 L512 512Z" fill="#7fb08a"/>
+  <path d="M0 512 L0 470 L170 440 L340 470 L512 450 L512 512Z" fill="#5e9a6c"/>
+  <g transform="translate(76 40) scale(3.6)">
+    <g stroke="#3d4a63" stroke-width="0.9" fill="none" opacity=".75">
+      <path d="M11 37.5 L47 70 M27 34 L48 70 M50 32.5 L50 70 M73 34 L52 70 M89 37.5 L53 70"/>
+    </g>
+    <g clip-path="url(#cc)">
+      <rect width="100" height="50" fill="#ff5a36"/>
+      <rect x="17" width="11" height="50" fill="#ffd23f"/>
+      <rect x="44.5" width="11" height="50" fill="#ffd23f"/>
+      <rect x="72" width="11" height="50" fill="#ffd23f"/>
+    </g>
+    <path d="M6 40 C 22 8, 78 8, 94 40 C 80 30, 20 30, 6 40 Z" fill="none" stroke="rgba(20,30,50,.45)" stroke-width="1.4"/>
+    <circle cx="50" cy="66" r="4.4" fill="#2b3a55"/>
+    <rect x="44.3" y="69.5" width="11.4" height="10.5" rx="4.5" fill="#2b3a55"/>
+    <path d="M47.5 79 L45.5 87.5 M52.5 79 L55.5 86.5" stroke="#2b3a55" stroke-width="2.6" stroke-linecap="round"/>
+  </g>
+</svg>

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#5fb3ee">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Thermikdoku">
+<meta name="description" content="Logikrätsel mit Gleitschirmen – ein Schirm pro Reihe, Spalte und Thermik-Zone. Ohne Werbung.">
+<title>Thermikdoku</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Grafik-Bibliothek -->
+<svg class="defs" aria-hidden="true" width="0" height="0">
+  <defs>
+    <clipPath id="canopyClip">
+      <path d="M6 40 C 22 8, 78 8, 94 40 C 80 30, 20 30, 6 40 Z"/>
+    </clipPath>
+    <symbol id="glider" viewBox="0 0 100 100">
+      <g stroke="#3d4a63" stroke-width="0.9" fill="none" opacity=".7">
+        <path d="M11 37.5 L47 70 M27 34 L48 70 M50 32.5 L50 70 M73 34 L52 70 M89 37.5 L53 70"/>
+      </g>
+      <g clip-path="url(#canopyClip)">
+        <rect x="0" y="0" width="100" height="50" style="fill:var(--c1,#ff5a36)"/>
+        <rect x="17" y="0" width="11" height="50" style="fill:var(--c2,#ffd23f)"/>
+        <rect x="44.5" y="0" width="11" height="50" style="fill:var(--c2,#ffd23f)"/>
+        <rect x="72" y="0" width="11" height="50" style="fill:var(--c2,#ffd23f)"/>
+        <path d="M0 22 C 30 6, 70 6, 100 22 L100 0 L0 0Z" fill="#fff" opacity=".22"/>
+      </g>
+      <path d="M6 40 C 22 8, 78 8, 94 40 C 80 30, 20 30, 6 40 Z" fill="none" stroke="rgba(20,30,50,.45)" stroke-width="1.4" stroke-linejoin="round"/>
+      <circle cx="50" cy="66" r="4.4" style="fill:var(--c3,#2b3a55)"/>
+      <rect x="44.3" y="69.5" width="11.4" height="10.5" rx="4.5" fill="#2b3a55"/>
+      <path d="M47.5 79 L45.5 87.5 M52.5 79 L55.5 86.5" stroke="#2b3a55" stroke-width="2.6" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1.1 2h5c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3v5h5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M9.4 9.3a2.7 2.7 0 1 1 3.7 2.5c-.7.3-1.1.9-1.1 1.6v.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.3" fill="currentColor"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9Z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2.5" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2.4"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="2" fill="currentColor"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2" fill="currentColor"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2" fill="currentColor"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<!-- Himmel -->
+<div class="sky" aria-hidden="true">
+  <div class="sun"></div>
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="cloud c3"></div>
+  <div class="cloud c4"></div>
+  <div class="bird b1"></div>
+  <div class="bird b2"></div>
+  <div class="sky-glider"><div class="sky-glider-bob"><svg><use href="#glider"/></svg></div></div>
+  <svg class="mountains" viewBox="0 0 400 120" preserveAspectRatio="none">
+    <path d="M0 120 L0 70 L40 45 L70 62 L115 22 L150 52 L185 35 L230 70 L270 30 L310 58 L350 38 L400 60 L400 120Z" fill="#9cc3dd"/>
+    <path d="M115 22 L102 33 L110 32 L118 38 L124 30 L130 31Z M270 30 L259 40 L266 39 L273 44 L279 37 L283 38Z" fill="#fff" opacity=".9"/>
+    <path d="M0 120 L0 88 L55 64 L95 84 L140 60 L200 92 L250 66 L300 90 L345 70 L400 86 L400 120Z" fill="#7fb08a"/>
+    <path d="M0 120 L0 104 L80 92 L160 106 L240 94 L320 108 L400 98 L400 120Z" fill="#5e9a6c"/>
+  </svg>
+</div>
+
+<main id="app">
+
+  <!-- Start -->
+  <section id="screen-home" class="screen active">
+    <div class="home-top">
+      <button class="icon-btn" data-action="help" aria-label="Anleitung"><svg><use href="#i-help"/></svg></button>
+      <button class="icon-btn" data-action="settings" aria-label="Einstellungen"><svg><use href="#i-gear"/></svg></button>
+    </div>
+    <div class="home-hero">
+      <div class="logo-glider"><div class="logo-bob"><svg><use href="#glider"/></svg></div></div>
+      <h1 class="title">Thermik<span>doku</span></h1>
+      <p class="subtitle">Ein Schirm pro Reihe, Spalte und Thermik.<br>Nicht zusammenstoßen!</p>
+    </div>
+    <div class="home-buttons">
+      <button class="btn btn-primary" data-action="continue">
+        <span><span class="btn-big">Abheben</span>
+        <span class="btn-small" id="continue-label">Level 1</span></span>
+      </button>
+      <button class="btn btn-sun" data-action="daily">
+        <svg class="btn-ico"><use href="#i-sun"/></svg>
+        <span><span class="btn-big">Tagesflug</span><span class="btn-small" id="daily-label">Heute</span></span>
+      </button>
+      <button class="btn btn-light" data-action="levels">
+        <svg class="btn-ico"><use href="#i-grid"/></svg>
+        <span class="btn-big">Alle Level</span>
+      </button>
+    </div>
+    <p class="footer-note">Ohne Werbung · offline spielbar</p>
+  </section>
+
+  <!-- Levelauswahl -->
+  <section id="screen-levels" class="screen">
+    <header class="topbar">
+      <button class="icon-btn" data-action="home" aria-label="Zurück"><svg><use href="#i-back"/></svg></button>
+      <h2>Flugbuch</h2>
+      <div class="stars-total"><svg><use href="#i-star"/></svg><span id="stars-total">0</span></div>
+    </header>
+    <div class="levels-scroll" id="levels-list"></div>
+  </section>
+
+  <!-- Spiel -->
+  <section id="screen-game" class="screen">
+    <header class="topbar">
+      <button class="icon-btn" data-action="back-from-game" aria-label="Zurück"><svg><use href="#i-back"/></svg></button>
+      <div class="game-title">
+        <h2 id="game-title">Level 1</h2>
+        <small id="game-sub">5×5 · Übungshang</small>
+      </div>
+      <div class="timer" id="timer">0:00</div>
+    </header>
+    <div class="progress" id="progress"></div>
+    <div class="board-wrap">
+      <div class="board" id="board"></div>
+      <div class="loading" id="loading"><div class="loading-glider"><svg><use href="#glider"/></svg></div><span>Suche Thermik …</span></div>
+    </div>
+    <nav class="tools">
+      <button class="tool" data-action="undo"><svg><use href="#i-undo"/></svg><span>Zurück</span></button>
+      <button class="tool tool-hint" data-action="hint"><svg><use href="#i-bulb"/></svg><span>Tipp</span></button>
+      <button class="tool" data-action="reset"><svg><use href="#i-reset"/></svg><span>Neu</span></button>
+    </nav>
+  </section>
+
+  <!-- Anleitung -->
+  <section id="screen-help" class="screen">
+    <header class="topbar">
+      <button class="icon-btn" data-action="help-close" aria-label="Zurück"><svg><use href="#i-back"/></svg></button>
+      <h2>Flugregeln</h2>
+      <div class="spacer"></div>
+    </header>
+    <div class="help-scroll">
+      <div class="help-example"><div class="board mini" id="help-board"></div></div>
+      <ol class="rules">
+        <li><b>Jede Reihe</b> braucht genau einen Gleitschirm.</li>
+        <li><b>Jede Spalte</b> braucht genau einen Gleitschirm.</li>
+        <li><b>Jede farbige Thermik-Zone</b> braucht genau einen Gleitschirm.</li>
+        <li><b>Abstand halten!</b> Schirme dürfen sich nicht berühren, auch nicht schräg.</li>
+      </ol>
+      <div class="controls-card">
+        <h3>Steuerung</h3>
+        <p><span class="kbd">Tippen</span> setzt ein <b>×</b> (hier fliegt keiner), nochmal tippen setzt einen <b>Schirm</b>, ein drittes Mal leert das Feld.</p>
+        <p><span class="kbd">Wischen</span> setzt viele × auf einmal.</p>
+        <p><span class="kbd">Lange drücken</span> setzt sofort einen Schirm.</p>
+        <p><span class="kbd">Tipp</span> hilft dir weiter, so oft du willst. Ohne Tipps und Zusammenstöße gibt es 3 Sterne.</p>
+      </div>
+      <button class="btn btn-primary" data-action="help-close"><span class="btn-big">Los geht's!</span></button>
+    </div>
+  </section>
+</main>
+
+<!-- Gewonnen -->
+<div class="modal" id="modal-win" aria-hidden="true">
+  <div class="card win-card">
+    <div class="win-glider"><svg><use href="#glider"/></svg></div>
+    <h2 id="win-title">Sanft gelandet!</h2>
+    <div class="win-stars">
+      <svg class="star" data-i="0"><use href="#i-star"/></svg>
+      <svg class="star big" data-i="1"><use href="#i-star"/></svg>
+      <svg class="star" data-i="2"><use href="#i-star"/></svg>
+    </div>
+    <div class="win-stats">
+      <div><small>Flugzeit</small><b id="win-time">0:00</b></div>
+      <div><small>Tipps</small><b id="win-hints">0</b></div>
+      <div><small>Beinahe-Crashs</small><b id="win-mistakes">0</b></div>
+    </div>
+    <p class="win-record" id="win-record"></p>
+    <button class="btn btn-primary" data-action="next"><span class="btn-big" id="win-next">Nächster Flug</span></button>
+    <button class="btn btn-light" data-action="win-menu"><span class="btn-big">Menü</span></button>
+  </div>
+</div>
+
+<!-- Einstellungen -->
+<div class="modal" id="modal-settings" aria-hidden="true">
+  <div class="card">
+    <h2>Einstellungen</h2>
+    <label class="toggle"><span>Sound</span><input type="checkbox" id="set-sound"><i></i></label>
+    <label class="toggle"><span>Vibration</span><input type="checkbox" id="set-vibe"><i></i></label>
+    <label class="toggle"><span>Automatische ×<small>Blockierte Felder anzeigen</small></span><input type="checkbox" id="set-autox"><i></i></label>
+    <button class="btn btn-light" data-action="settings-close"><span class="btn-big">Fertig</span></button>
+    <button class="link-btn" data-action="reset-progress">Fortschritt löschen</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="fx" id="fx" aria-hidden="true"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
