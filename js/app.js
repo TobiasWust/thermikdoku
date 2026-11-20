@@ -5,12 +5,67 @@ const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
 
 // ---------- Konstanten ----------
-const ZONE_COLORS = ['#ffd6a5', '#c8f7c5', '#9eeaf9', '#cdc1ff', '#ffb3b3', '#fdf6a8', '#a8c8ff', '#ffc8f0', '#e6dccb', '#8ed9c4'];
-const CANOPIES = [
-  ['#ff5a36', '#ffd23f'], ['#1f7aff', '#ffffff'], ['#e83e8c', '#ff9f1c'],
-  ['#14a37f', '#f9e04b'], ['#7b2ff7', '#00d4ff'], ['#ff3d3d', '#ffffff'],
-  ['#ff8c00', '#2b3a55'], ['#00a8e8', '#ffef5a'], ['#c0392b', '#f5d76e'], ['#2ecc71', '#1f3a93'],
+// Bonbon-Pastelltöne, nach Farbton im Kreis sortiert
+const ZONE_COLORS = ['#ffcf9f', '#fff08c', '#cdf59a', '#9ff0c4', '#9fe9f5', '#a9c6ff', '#cdb8ff', '#f5b8f0', '#ffb3c1', '#e9cfae'];
+
+// Farben so verteilen, dass benachbarte Zonen nie ähnliche Farbtöne haben
+function assignZoneColors(n, regions, seed) {
+  const rng = mulberry32(seed);
+  const adj = Array.from({ length: n }, () => new Set());
+  for (let i = 0; i < n * n; i++) {
+    const r = (i / n) | 0, c = i % n;
+    if (c + 1 < n && regions[i] !== regions[i + 1]) { adj[regions[i]].add(regions[i + 1]); adj[regions[i + 1]].add(regions[i]); }
+    if (r + 1 < n && regions[i] !== regions[i + n]) { adj[regions[i]].add(regions[i + n]); adj[regions[i + n]].add(regions[i]); }
+  }
+  const P = ZONE_COLORS.length;
+  const dist = (a, b) => { const d = Math.abs(a - b); return Math.min(d, P - d); };
+  for (const minDist of [3, 2, 1]) {
+    const pick = new Array(n).fill(-1);
+    const used = new Set();
+    const order = [...Array(n).keys()].sort((a, b) => adj[b].size - adj[a].size);
+    const ok = (function rec(k) {
+      if (k === n) return true;
+      const g = order[k];
+      for (const col of shuffle([...Array(P).keys()], rng)) {
+        if (used.has(col)) continue;
+        if ([...adj[g]].some((h) => pick[h] >= 0 && dist(pick[h], col) < minDist)) continue;
+        pick[g] = col; used.add(col);
+        if (rec(k + 1)) return true;
+        pick[g] = -1; used.delete(col);
+      }
+      return false;
+    })(0);
+    if (ok) return pick.map((k) => ZONE_COLORS[k]);
+  }
+  return shuffle(ZONE_COLORS.slice(), rng);
+}
+// Schirmfarben passend zu den Sprites (für Partikel)
+const CANOPY_COLORS = ['#ff5a36', '#1f7aff', '#e83e8c', '#14a37f', '#7b2ff7', '#ff8c00'];
+const SPARK_COLORS = ['#ffd23f', '#ff8fc7', '#7ce0ff', '#a6f08a', '#ffffff', '#c9a6ff'];
+const sprite = (k) => `assets/glider-${(k % 6) + 1}.webp`;
+const SPRITE_SCARED = 'assets/glider-scared.webp';
+const SPRITE_HAPPY = 'assets/glider-happy.webp';
+// Bilder vorladen, damit nichts aufblitzt
+[1, 2, 3, 4, 5, 6].map((k) => `assets/glider-${k}.webp`).concat([SPRITE_SCARED, SPRITE_HAPPY, 'assets/cloud.webp'])
+  .forEach((src) => { const im = new Image(); im.src = src; });
+
+// ---------- Flugmeilen & Ränge ----------
+const RANKS = [
+  [0, 'Flugschüler'], [250, 'Hüpfer'], [700, 'Thermikschnüffler'], [1500, 'Streckenflieger'],
+  [3000, 'Wolkenkitzler'], [5500, 'Alpenadler'], [9000, 'Himmelsakrobat'], [14000, 'Wolkenkönig'], [21000, 'Himmelslegende'],
 ];
+function rankInfo(xp) {
+  let i = 0;
+  while (i + 1 < RANKS.length && xp >= RANKS[i + 1][0]) i++;
+  let from = RANKS[i][0], to = RANKS[i + 1]?.[0], name = RANKS[i][1], lvl = i + 1;
+  if (to == null) { // jenseits der Liste: alle 9000 Meilen ein neuer Legenden-Rang
+    const extra = Math.floor((xp - from) / 9000);
+    from += extra * 9000; to = from + 9000; lvl += extra;
+    if (extra) name += ' ' + ['II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'][Math.min(extra - 1, 8)];
+  }
+  return { lvl, name, from, to, frac: Math.min(1, (xp - from) / (to - from)) };
+}
+const XP_BASE = { leicht: 40, mittel: 80, schwer: 150, experte: 260 };
 const DIFF_KEYS = ['leicht', 'mittel', 'schwer', 'experte'];
 const DAILY_DIFF = ['experte', 'leicht', 'mittel', 'mittel', 'schwer', 'schwer', 'experte']; // So..Sa
 
@@ -24,6 +79,7 @@ function defaults() {
     daily: {},      // datum -> sterne
     current: {},    // key -> { puzzle, cells, elapsed, hints, mistakes }
     pool: {},       // diff -> vorab erzeugtes Rätsel
+    xp: 0,          // Flugmeilen
   };
 }
 const store = (() => {
@@ -42,14 +98,15 @@ function vibe(p) { if (store.settings.vibe && navigator.vibrate) { try { navigat
 // ---------- Hilfsfunktionen ----------
 const fmtTime = (s) => { s = Math.floor(s); const m = Math.floor(s / 60); return `${m}:${String(s % 60).padStart(2, '0')}`; };
 const todayStr = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-const nextFrame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+// wartet auf das nächste Bild – mit Zeitlimit, falls der Tab im Hintergrund ist
+const nextFrame = () => new Promise((r) => { requestAnimationFrame(() => requestAnimationFrame(r)); setTimeout(r, 60); });
 const randomSeed = () => crypto.getRandomValues(new Uint32Array(1))[0];
 const sizeLabel = (d) => DIFFICULTIES[d].sizes.map((n) => `${n}×${n}`).join(' / ');
 
-function gliderSVG(region, extraClass = '') {
-  const [c1, c2] = CANOPIES[region % CANOPIES.length];
-  return `<div class="g-bob ${extraClass}" style="--c1:${c1};--c2:${c2};--bd:-${(Math.random() * 3).toFixed(2)}s"><svg viewBox="0 0 100 100"><use href="#glider"/></svg></div>`;
+function gliderHTML(k, src = sprite(k)) {
+  return `<div class="g-bob" style="--bd:-${(Math.random() * 3).toFixed(2)}s"><img src="${src}" alt="" draggable="false"></div>`;
 }
+const X_HTML = '<svg class="x" viewBox="0 0 24 24"><use href="#i-x"/></svg>';
 
 // ---------- Rätsel-Erzeugung im Hintergrund ----------
 let worker = null;
@@ -114,10 +171,14 @@ function dailyStreak() {
   return streak;
 }
 function renderHome() {
+  const r = rankInfo(store.xp || 0);
+  $('#rank-lvl').textContent = r.lvl;
+  $('#rank-name').textContent = r.name;
+  setTimeout(() => setRankBar($('#rank-fill'), r.frac), 400);
   $('#diff-grid').innerHTML = DIFF_KEYS.map((k, idx) => {
     const d = DIFFICULTIES[k];
     const st = statsOf(k);
-    const icons = Array.from({ length: 4 }, (_, i) => `<svg class="${i < d.icons ? 'on' : ''}" viewBox="0 0 100 100"><use href="#glider"/></svg>`).join('');
+    const icons = Array.from({ length: 4 }, (_, i) => `<img class="${i < d.icons ? '' : 'off'}" src="${sprite([0, 1, 5, 4][idx])}" alt="">`).join('');
     const info = st.solved ? `${st.solved} gelöst · ⏱ ${fmtTime(st.best)}` : 'Noch nicht geflogen';
     const resume = store.current[k] ? '<span class="badge">Fortsetzen</span>' : '';
     return `<button class="diff-card diff-${k}" data-diff="${k}" style="--k:${idx}">
@@ -132,7 +193,7 @@ function renderHome() {
   const streak = dailyStreak();
   $('[data-action="daily"]').classList.toggle('done-today', done);
   const dd = DIFFICULTIES[DAILY_DIFF[new Date().getDay()]];
-  $('#daily-label').textContent = (done ? 'Heute geschafft' : `Heute: ${dd.name}`) + (streak > 1 ? ` · ${streak} Tage in Folge` : '');
+  $('#daily-label').innerHTML = (done ? 'Heute geschafft' : `Heute: ${dd.name}`) + (streak > 1 ? ` · <span class="streak">🔥</span> ${streak} Tage` : '');
 }
 
 // ---------- Spielzustand ----------
@@ -142,6 +203,7 @@ const G = {
   cells: null, history: [], hints: 0, mistakes: 0,
   elapsed: 0, startedAt: null, done: false,
   cellEls: [],
+  combo: 0, bestCombo: 0, lastPlace: 0, comboT: null, milestones: new Set(),
 };
 let timerInt = null;
 
@@ -172,6 +234,7 @@ function saveProgress() {
   cur.elapsed = Math.floor(G.elapsed);
   cur.hints = G.hints;
   cur.mistakes = G.mistakes;
+  cur.bestCombo = G.bestCombo;
   save();
 }
 
@@ -222,11 +285,13 @@ async function startGame({ mode, diff, fresh = false }) {
   const p = cur.puzzle;
   const n = p.n;
   G.key = key; G.n = n; G.regions = p.regions; G.solution = p.solution;
-  G.colors = shuffle(ZONE_COLORS.slice(), mulberry32(p.colorSeed));
+  G.colors = assignZoneColors(n, p.regions, p.colorSeed);
   G.cells = new Uint8Array(n * n);
   if (cur.cells && cur.cells.length === n * n) cur.cells.forEach((v, i) => (G.cells[i] = v));
   G.hints = cur.hints || 0; G.mistakes = cur.mistakes || 0; G.elapsed = cur.elapsed || 0;
   G.history = []; G.done = false; G.startedAt = null;
+  G.combo = 0; G.bestCombo = cur.bestCombo || 0; G.lastPlace = 0; G.milestones = new Set();
+  $('#combo').classList.remove('show');
   $('#game-sub').textContent = `${n}×${n} · ` + sub;
   buildBoard();
   render({ initial: true });
@@ -262,8 +327,7 @@ function buildBoard() {
   void board.offsetWidth;
   board.classList.add('enter');
   $('#progress').innerHTML = Array.from({ length: G.n }, (_, i) => {
-    const [c1, c2] = CANOPIES[i % CANOPIES.length];
-    return `<div class="pg" style="--c1:${c1};--c2:${c2}"><svg viewBox="0 0 100 100"><use href="#glider"/></svg></div>`;
+    return `<div class="pg" style="--k:${i}"><img src="${sprite(i)}" alt=""></div>`;
   }).join('');
 }
 
@@ -309,7 +373,7 @@ function render({ initial = false, animate = new Set() } = {}) {
     const v = cells[i];
     // ×
     let x = el.querySelector('.x');
-    if (v === 1 && !x) { x = document.createElement('span'); x.className = 'x'; x.textContent = '×'; el.appendChild(x); }
+    if (v === 1 && !x) { el.insertAdjacentHTML('beforeend', X_HTML); }
     if (v !== 1 && x) x.remove();
     el.classList.toggle('has-x', v === 1);
     // Schirm
@@ -319,7 +383,7 @@ function render({ initial = false, animate = new Set() } = {}) {
       g.className = 'g-wrap' + (initial || !animate.has(i) ? ' noanim' : '');
       if (initial) g.classList.remove('noanim');
       if (initial) g.style.animationDelay = `${0.25 + Math.random() * 0.3}s`;
-      g.innerHTML = gliderSVG(G.regions[i]);
+      g.innerHTML = gliderHTML(G.regions[i]);
       el.appendChild(g);
     }
     if (v !== 2 && g) {
@@ -328,6 +392,11 @@ function render({ initial = false, animate = new Set() } = {}) {
     }
     el.classList.toggle('has-g', v === 2);
     el.classList.toggle('conflict', info.conflict.has(i));
+    if (v === 2 && g) {
+      const img = g.querySelector('img');
+      const want = info.conflict.has(i) ? SPRITE_SCARED : sprite(G.regions[i]);
+      if (img && !img.src.endsWith(want)) img.src = want;
+    }
     el.classList.toggle('auto', store.settings.autoX && !!info.blocked[i]);
   }
   // Fortschritt
@@ -339,6 +408,7 @@ function render({ initial = false, animate = new Set() } = {}) {
     if (!on) p.classList.remove('on');
     p.classList.toggle('bad', on && k >= good);
   });
+  $('#progress').classList.toggle('full', info.gl.length === G.n && !info.conflict.size);
   return info;
 }
 
@@ -348,7 +418,7 @@ function pushHistory() {
   if (G.history.length > 300) G.history.shift();
 }
 
-function setCells(changes, { sound = true } = {}) {
+function setCells(changes, { sound = true, hint = false } = {}) {
   // changes: [[i, v], ...]
   const before = analyze();
   const animate = new Set();
@@ -367,21 +437,114 @@ function setCells(changes, { sound = true } = {}) {
     const newConflict = [...info.conflict].some((i) => !before.conflict.has(i));
     if (newConflict && info.conflict.has(placed)) {
       G.mistakes++;
+      breakCombo();
       if (sound) sfx.bad();
       vibe([30, 50, 30]);
       const why = info.reasons.get(placed);
-      toast({ touch: 'Kollisionsgefahr! Schirme dürfen sich nicht berühren.', row: 'Zwei Schirme in einer Reihe!', col: 'Zwei Schirme in einer Spalte!', zone: 'Zwei Schirme in einer Thermik-Zone!' }[why], 'bad');
-      G.cellEls[placed].animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-4px)' }, { transform: 'translateX(4px)' }, { transform: 'translateX(0)' }], { duration: 300 });
+      toast({ touch: 'Kollisionsgefahr! Schirme dürfen sich nicht berühren.', row: 'Zwei Schirme in einer Reihe!', col: 'Zwei Schirme in einer Spalte!', zone: 'Zwei Schirme in einer Zone!' }[why], 'bad');
+      quake();
     } else {
       if (sound) sfx.place();
       vibe(12);
       ripple(placed);
+      burstAtCell(placed, 9, [CANOPY_COLORS[G.regions[placed] % 6], ...SPARK_COLORS]);
+      if (!hint) bumpCombo(placed); else breakCombo();
+      milestone(info, placed);
     }
   } else if (marked) { if (sound) sfx.mark(); vibe(5); }
   else if (removed) { if (sound) sfx.remove(); vibe(5); }
   saveProgress();
   checkWin(info);
 }
+
+// ---------- Belohnungs-Effekte ----------
+function cellCenter(i) {
+  const r = G.cellEls[i].getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width };
+}
+function burst(x, y, count = 10, colors = SPARK_COLORS, { spread = 70, size = 14 } = {}) {
+  const fx = $('#fx');
+  for (let k = 0; k < count; k++) {
+    const a = (k / count) * Math.PI * 2 + Math.random() * 0.6;
+    const d = spread * (0.5 + Math.random() * 0.7);
+    const el = document.createElement('div');
+    el.className = 'spark';
+    el.style.cssText = `left:${x}px;top:${y}px;--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d}px;--s:${size * (0.6 + Math.random() * 0.8)}px;--c:${colors[k % colors.length]};--r:${(Math.random() - 0.5) * 540}deg;--t:${0.6 + Math.random() * 0.4}s`;
+    el.innerHTML = '<svg viewBox="0 0 24 24"><use href="#i-spark"/></svg>';
+    fx.appendChild(el);
+    setTimeout(() => el.remove(), 1100);
+  }
+}
+function burstAtCell(i, count, colors) {
+  const c = cellCenter(i);
+  burst(c.x, c.y, count, colors, { spread: c.w * 1.1, size: Math.max(10, c.w * 0.28) });
+}
+function popup(text, x, y, { color = '#fff', size = 24 } = {}) {
+  const el = document.createElement('div');
+  el.className = 'popup';
+  el.textContent = text;
+  el.style.cssText = `left:${x}px;top:${y}px;--c:${color};--fs:${size}px`;
+  $('#fx').appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+function quake() {
+  const b = $('#board');
+  b.classList.remove('quake'); void b.offsetWidth; b.classList.add('quake');
+}
+
+const COMBO_WORDS = ['', '', 'Schön!', 'Super!', 'Klasse!', 'Wahnsinn!', 'Thermik-Profi!', 'Unaufhaltsam!', 'Himmelsstürmer!', 'Legendär!', 'Perfekt!'];
+const COMBO_COLORS = ['#fff', '#fff', '#a6f08a', '#7ce0ff', '#ffd23f', '#ff8fc7', '#c9a6ff', '#ff9f5a', '#7ce0ff', '#ffd23f', '#ff8fc7'];
+function bumpCombo(i) {
+  const now = performance.now();
+  G.combo = now - G.lastPlace < 9000 ? G.combo + 1 : 1;
+  G.lastPlace = now;
+  G.bestCombo = Math.max(G.bestCombo, G.combo);
+  const el = $('#combo');
+  if (G.combo >= 2) {
+    const k = Math.min(G.combo, COMBO_WORDS.length - 1);
+    const c = cellCenter(i);
+    popup(COMBO_WORDS[k], c.x, c.y - c.w * 0.3, { color: COMBO_COLORS[k], size: 20 + Math.min(G.combo, 8) * 2 });
+    sfx.combo(G.combo);
+    el.textContent = `Combo ×${G.combo}`;
+    el.classList.add('show');
+    el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+    if (G.combo >= 4) burst(c.x, c.y, 6 + G.combo, SPARK_COLORS, { spread: c.w * 1.8, size: 16 });
+  }
+  clearTimeout(G.comboT);
+  G.comboT = setTimeout(() => el.classList.remove('show'), 9000);
+}
+function breakCombo() {
+  G.combo = 0;
+  $('#combo').classList.remove('show');
+}
+
+function milestone(info, i) {
+  const count = info.gl.length - info.conflict.size;
+  const c = cellCenter(i);
+  const half = Math.ceil(G.n / 2);
+  let text = null;
+  if (count === G.n - 1 && !G.milestones.has('last')) { G.milestones.add('last'); text = 'Noch einer!'; }
+  else if (count === half && G.n >= 6 && !G.milestones.has('half')) { G.milestones.add('half'); text = 'Halbzeit!'; }
+  if (text) {
+    setTimeout(() => {
+      const b = $('#board').getBoundingClientRect();
+      popup(text, b.left + b.width / 2, b.top + b.height / 2, { color: '#ffd23f', size: 34 });
+      sfx.milestone();
+      burst(b.left + b.width / 2, b.top + b.height / 2, 14, SPARK_COLORS, { spread: 120, size: 18 });
+    }, 350);
+  }
+}
+
+// Gelegentlich macht ein Schirm einen Freudenhüpfer
+setInterval(() => {
+  if (currentScreen !== 'game' || G.done || !G.cells || document.hidden) return;
+  const ws = G.cellEls.map((el) => el.querySelector('.g-wrap:not(.leave)')).filter((g) => g && !g.parentElement.classList.contains('conflict'));
+  if (!ws.length) return;
+  const g = ws[Math.floor(Math.random() * ws.length)];
+  g.classList.remove('noanim'); g.style.animation = 'none';
+  g.classList.add('happy');
+  setTimeout(() => g.classList.remove('happy'), 700);
+}, 3200);
 
 function puff(i) {
   const el = G.cellEls[i];
@@ -519,14 +682,14 @@ function hint() {
     const i = r * n + solution[r];
     highlight([i]);
     toast('Kniffliger Flug! Hier fliegt sicher ein Schirm.', 'good');
-    later(() => setCells([[i, 2]]), 700);
+    later(() => setCells([[i, 2]], { hint: true }), 700);
     return saveProgress();
   }
   const soft = [...new Set(step.units.flatMap((u) => u.cells))];
   toast(explain(step), 'good');
   if (step.place != null) {
     highlight([step.place], soft);
-    later(() => setCells([[step.place, 2]]), 750);
+    later(() => setCells([[step.place, 2]], { hint: true }), 750);
   } else {
     highlight(step.elim, soft);
     later(() => setCells(step.elim.map((i) => [i, 1])), 750);
@@ -540,6 +703,7 @@ function checkWin(info) {
   if (info.gl.length !== G.n || info.conflict.size) return;
   G.done = true;
   pauseTimer();
+  breakCombo();
   const time = Math.floor(G.elapsed);
   const errors = G.hints + G.mistakes;
   const stars = errors === 0 ? 3 : errors <= 2 ? 2 : 1;
@@ -548,20 +712,33 @@ function checkWin(info) {
   if (G.mode === 'daily') {
     store.daily[G.date] = Math.max(store.daily[G.date] || 0, stars);
     const s = dailyStreak();
-    if (s > 1) record = `${s} Tage in Folge geflogen!`;
+    if (s > 1) record = `🔥 ${s} Tage in Folge!`;
   } else {
     st.solved++;
     if (stars === 3) st.perfect++;
-    if (st.best == null || time < st.best) { if (st.best != null) record = 'Neue Bestzeit!'; st.best = time; }
+    if (st.best == null || time < st.best) { if (st.best != null) record = 'Bestzeit!'; st.best = time; }
   }
+  // Flugmeilen
+  const base = XP_BASE[G.diff] * (G.mode === 'daily' ? 1.5 : 1);
+  const mult = stars === 3 ? 2 : stars === 2 ? 1.4 : 1;
+  const comboBonus = G.bestCombo >= 2 ? G.bestCombo * 5 : 0;
+  const gain = Math.round(base * mult + comboBonus);
+  const xpBefore = store.xp || 0;
+  store.xp = xpBefore + gain;
   delete store.current[G.key];
   save();
-  celebrate(stars, time, record);
+  celebrate(stars, time, record, { gain, xpBefore, comboBonus, mult });
 }
 
-function celebrate(stars, time, record) {
+function celebrate(stars, time, record, xp) {
   const board = $('#board');
   sfx.win(); vibe([20, 60, 20, 60, 40]);
+  const flash = document.createElement('div');
+  flash.className = 'flashscreen';
+  document.body.appendChild(flash);
+  setTimeout(() => flash.remove(), 600);
+  const br = board.getBoundingClientRect();
+  burst(br.left + br.width / 2, br.top + br.height / 2, 24, SPARK_COLORS, { spread: br.width * 0.7, size: 22 });
   // Welle über das Brett
   const n = G.n;
   G.cellEls.forEach((el, i) => {
@@ -581,48 +758,106 @@ function celebrate(stars, time, record) {
       const fly = document.createElement('div');
       fly.className = 'fly';
       fly.style.cssText = `left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;--ld:${((i / n) | 0) * 0.09}s;--lx:${(Math.random() - 0.5) * 60}vw;--lr:${(Math.random() - 0.5) * 50}deg`;
-      fly.innerHTML = gliderSVG(G.regions[i]);
+      fly.innerHTML = gliderHTML(G.regions[i]);
       fx.appendChild(fly);
       g.style.visibility = 'hidden';
       setTimeout(() => fly.remove(), 3000);
     });
   }, 650);
   setTimeout(confetti, 900);
-  setTimeout(() => showWin(stars, time, record), 1700);
+  setTimeout(() => showWin(stars, time, record, xp), 1700);
 }
 
-function confetti() {
+function confetti(amount = 54) {
   const fx = $('#fx');
-  const cols = ['#ff5a36', '#ffd23f', '#1f7aff', '#e83e8c', '#2fbf71', '#7b2ff7', '#00d4ff'];
-  for (let k = 0; k < 46; k++) {
+  const cols = ['#ff5a4e', '#ffd23f', '#3d8bff', '#ff8fc7', '#36c97a', '#8a4dff', '#7ce0ff'];
+  for (let k = 0; k < amount; k++) {
     const d = document.createElement('div');
-    const isGlider = k % 4 === 0;
-    const size = isGlider ? 26 + Math.random() * 20 : 8 + Math.random() * 8;
-    d.className = 'confetti' + (isGlider ? '' : ' piece');
-    d.style.cssText = `left:${Math.random() * 100}vw;width:${size}px;height:${isGlider ? size : size * 0.6}px;--dur:${2.8 + Math.random() * 2.5}s;--dl:${Math.random() * 0.8}s;--rot:${(Math.random() - 0.5) * 720}deg;--col:${cols[k % cols.length]}`;
-    if (isGlider) {
-      const [c1, c2] = CANOPIES[k % CANOPIES.length];
-      d.innerHTML = `<div style="--c1:${c1};--c2:${c2}"><svg viewBox="0 0 100 100"><use href="#glider"/></svg></div>`;
-    } else d.innerHTML = '<div></div>';
+    const kind = k % 5 === 0 ? 'glider' : k % 3 === 0 ? 'star' : 'piece';
+    const size = kind === 'glider' ? 34 + Math.random() * 22 : kind === 'star' ? 16 + Math.random() * 12 : 9 + Math.random() * 8;
+    d.className = 'confetti ' + kind;
+    d.style.cssText = `left:${Math.random() * 100}vw;width:${size}px;height:${kind === 'piece' ? size * 0.6 : size}px;--dur:${2.6 + Math.random() * 2.6}s;--dl:${Math.random() * 0.9}s;--rot:${(Math.random() - 0.5) * 720}deg;--col:${cols[k % cols.length]}`;
+    d.innerHTML = kind === 'glider' ? `<div><img src="${sprite(k)}" alt=""></div>`
+      : kind === 'star' ? '<div><svg viewBox="0 0 24 24"><use href="#i-star"/></svg></div>' : '<div></div>';
     fx.appendChild(d);
     setTimeout(() => d.remove(), 6500);
   }
 }
 
 const WIN_TITLES = ['Sanft gelandet!', 'Perfekte Thermik!', 'Toplandung!', 'Was für ein Flug!', 'Luftraum gesichert!', 'Butterweich gelandet!'];
-function showWin(stars, time, record) {
+function countUp(el, to, { dur = 900, fmt = (v) => v, tick = true } = {}) {
+  const t0 = performance.now();
+  let last = -1;
+  function step(t) {
+    const p = Math.min(1, (t - t0) / dur);
+    const v = Math.round(to * (1 - Math.pow(1 - p, 3)));
+    el.textContent = fmt(v);
+    if (tick && v !== last && Math.floor(v / Math.max(1, to / 12)) !== Math.floor(last / Math.max(1, to / 12))) sfx.tick();
+    last = v;
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+  // Endwert garantiert setzen, auch wenn keine Bilder gezeichnet werden
+  setTimeout(() => { el.textContent = fmt(to); }, dur + 100);
+}
+
+function setRankBar(fill, frac, instant = false) {
+  if (instant) { fill.style.transition = 'none'; fill.style.width = frac * 100 + '%'; void fill.offsetWidth; fill.style.transition = ''; }
+  else fill.style.width = frac * 100 + '%';
+}
+
+function showWin(stars, time, record, xp) {
   $('#win-title').textContent = stars === 3 ? WIN_TITLES[Math.floor(Math.random() * WIN_TITLES.length)] : stars === 2 ? 'Gut gelandet!' : 'Gelandet!';
-  $('#win-time').textContent = fmtTime(time);
   $('#win-hints').textContent = G.hints;
-  $('#win-mistakes').textContent = G.mistakes;
+  $('#win-combo').textContent = G.bestCombo >= 2 ? `×${G.bestCombo}` : '–';
   $('#win-record').textContent = record;
   $('#win-next').textContent = G.mode === 'daily' ? 'Zum Menü' : `Neuer Flug · ${DIFFICULTIES[G.diff].name}`;
   $('[data-action="win-menu"]').style.display = G.mode === 'daily' ? 'none' : '';
   $$('.win-stars .star').forEach((s) => s.classList.remove('on'));
+  const before = rankInfo(xp.xpBefore), after = rankInfo(xp.xpBefore + xp.gain);
+  const fill = $('#win-fill');
+  $('#win-rank').textContent = `${before.name} · Rang ${before.lvl}`;
+  $('#win-xp').textContent = '+0';
+  const notes = [];
+  if (xp.mult > 1) notes.push(`Sterne ×${xp.mult}`);
+  if (xp.comboBonus) notes.push(`Combo +${xp.comboBonus}`);
+  if (G.mode === 'daily') notes.push('Tagesflug ×1.5');
+  $('#win-xp-note').textContent = 'Flugmeilen' + (notes.length ? ' · ' + notes.join(' · ') : '');
+  setRankBar(fill, before.frac, true);
   openModal('#modal-win');
+  countUp($('#win-time'), time, { dur: 700, fmt: fmtTime, tick: false });
   [0, 1, 2].forEach((i) => {
-    if (i < stars) setTimeout(() => { $(`.win-stars .star[data-i="${i}"]`).classList.add('on'); sfx.star(i); vibe(15); }, 450 + i * 280);
+    if (i >= stars) return;
+    setTimeout(() => {
+      const st = $(`.win-stars .star[data-i="${i}"]`);
+      st.classList.add('on'); sfx.star(i); vibe(15);
+      const r = st.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + r.height / 2, 10, ['#ffd23f', '#fff', '#ffe37a'], { spread: 60, size: 14 });
+    }, 500 + i * 320);
   });
+  // Meilen hochzählen und Balken füllen
+  setTimeout(() => {
+    countUp($('#win-xp'), xp.gain, { dur: 1000, fmt: (v) => `+${v}` });
+    if (after.lvl > before.lvl) {
+      setRankBar(fill, 1);
+      setTimeout(() => {
+        setRankBar(fill, 0, true);
+        setRankBar(fill, after.frac);
+        $('#win-rank').textContent = `${after.name} · Rang ${after.lvl}`;
+        showRankUp(after);
+      }, 750);
+    } else setRankBar(fill, after.frac);
+  }, 500 + stars * 320 + 200);
+}
+
+function showRankUp(r) {
+  $('#rankup-name').textContent = r.name;
+  $('#rankup-lvl').textContent = `Rang ${r.lvl}`;
+  const el = $('#rankup');
+  el.classList.add('show');
+  sfx.levelUp(); vibe([40, 60, 40, 60, 80]);
+  confetti(70);
+  setTimeout(() => burst(innerWidth / 2, innerHeight / 2, 28, SPARK_COLORS, { spread: 170, size: 24 }), 300);
 }
 
 // ---------- Modals & Toast ----------
@@ -707,10 +942,10 @@ function buildHelpExample() {
     const g = document.createElement('div');
     g.className = 'g-wrap';
     g.style.animationDelay = `${0.2 + k * 0.18}s`;
-    g.innerHTML = gliderSVG(k);
+    g.innerHTML = gliderHTML(k);
     els[i].appendChild(g);
   });
-  [0, 2, 3, 5].forEach((i) => { const x = document.createElement('span'); x.className = 'x'; x.textContent = '×'; els[i].appendChild(x); });
+  [0, 2, 3, 5].forEach((i) => els[i].insertAdjacentHTML('beforeend', X_HTML));
 }
 
 // ---------- Buttons ----------
@@ -729,9 +964,16 @@ document.addEventListener('click', (e) => {
   if (!b) return;
   unlockAudio();
   const a = b.dataset.action;
+  if (b.matches('.btn, .tool, .icon-btn, .rank')) { b.classList.remove('jelly'); void b.offsetWidth; b.classList.add('jelly'); }
   if (!['undo', 'hint', 'reset'].includes(a)) sfx.click();
   switch (a) {
     case 'daily': startGame({ mode: 'daily' }); break;
+    case 'rank': {
+      const r = rankInfo(store.xp || 0);
+      toast(`${r.name}: noch ${r.to - (store.xp || 0)} Flugmeilen bis Rang ${r.lvl + 1}`, 'good');
+      break;
+    }
+    case 'rankup-close': $('#rankup').classList.remove('show'); break;
     case 'home': show('home'); break;
     case 'back-from-game': show('home'); break;
     case 'help': helpReturn = currentScreen; openHelp(); break;
@@ -790,6 +1032,36 @@ function later(fn, ms) {
   const k = G.key;
   setTimeout(() => { if (G.key === k && !G.done) fn(); }, ms);
 }
+
+// ---------- Startseite: verspielte Details ----------
+$('#title').innerHTML = [...'Thermikdoku'].map((ch, i) =>
+  `<span class="${i >= 7 ? 'y' : ''}" style="animation-delay:${0.45 + i * 0.05}s, ${2 + i * 0.12}s">${ch}</span>`).join('');
+
+$('#logo').addEventListener('click', () => {
+  unlockAudio();
+  const l = $('#logo');
+  if (l.classList.contains('loop')) return;
+  l.classList.add('loop');
+  sfx.whee(); vibe(20);
+  const r = l.getBoundingClientRect();
+  burst(r.left + r.width / 2, r.top + r.height / 2, 14, SPARK_COLORS, { spread: r.width * 0.9, size: 18 });
+  setTimeout(() => { l.classList.remove('loop'); l.querySelector('img').src = sprite(Math.floor(Math.random() * 6)); }, 1000);
+});
+
+setInterval(() => {
+  if (currentScreen !== 'home' || document.hidden) return;
+  const cards = $$('.diff-card');
+  if (!cards.length) return;
+  const resume = cards.filter((c) => c.querySelector('.badge'));
+  const pool = resume.length && Math.random() < 0.6 ? resume : cards;
+  const c = pool[Math.floor(Math.random() * pool.length)];
+  c.classList.remove('wiggle'); void c.offsetWidth; c.classList.add('wiggle');
+}, 4200);
+
+// Der Schirm im Hintergrund wechselt bei jeder Runde die Farbe
+$('.sky-glider').addEventListener('animationiteration', (e) => {
+  if (e.animationName === 'skyGlide') $('.sky-glider img').src = sprite(Math.floor(Math.random() * 6));
+});
 
 // ---------- Start ----------
 localStorage.removeItem('thermikdoku.v1');

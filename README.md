@@ -25,7 +25,9 @@ Logikrätsel mit Gleitschirmen – fürs Handy optimiert, ohne Werbung, offline 
 - Täglicher „Tagesflug“ (Stufe je nach Wochentag) mit Serienzähler
 - Statistik pro Stufe (gelöst, Bestzeit), Spielstand wird gespeichert
 - Erzeugung im Web Worker mit Vorrat, damit neue Rätsel sofort da sind
-- Animationen: einfliegende Schirme, Thermik-Welle, Kollisions-Wackeln, Abheben und Konfetti beim Sieg
+- Kawaii-Grafikstil: handgemalte Figuren (erzeugt mit ChatGPT, Prompts in `assets/src/PROMPTS.md`), dicke Navy-Konturen und Sticker-Schatten in der ganzen Oberfläche
+- Belohnungen: Combos mit steigender Tonleiter, Glitzer-Partikel, „Halbzeit!“/„Noch einer!“, Flugmeilen mit Pilotenrängen und Rang-Aufstieg
+- Animationen: einfliegende Schirme mit Squash & Stretch, erschrockene Figuren bei Zusammenstößen, Freudenhüpfer, Thermik-Welle, Abheben, Konfetti, hochzählende Werte
 - Synth-Sounds per WebAudio, Vibration (Android)
 
 ## Lokal starten
@@ -41,4 +43,5 @@ Dann http://localhost:8765 öffnen. Für Offline/Installieren auf dem Handy auf 
 - `js/app.js`: Spiel-Logik, UI, Tipps, Animationen
 - `js/audio.js`: Sounds
 - `css/style.css`: Styles und Animationen
+- `assets/`: optimierte Sprites (WebP), Originale in `assets/src/`
 - `sw.js`, `manifest.webmanifest`: PWA/Offline

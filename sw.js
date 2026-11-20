@@ -1,8 +1,11 @@
 // Offline-Cache für Thermikdoku
-const CACHE = 'thermikdoku-v2';
+const CACHE = 'thermikdoku-v3';
 const ASSETS = [
   './', 'index.html', 'css/style.css', 'js/app.js', 'js/puzzle.js', 'js/audio.js', 'js/worker.js',
-  'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-180.png', 'icons/icon-512.png',
+  'manifest.webmanifest', 'icons/icon-64.png', 'icons/icon-180.png', 'icons/icon-512.png',
+  'assets/glider-1.webp', 'assets/glider-2.webp', 'assets/glider-3.webp', 'assets/glider-4.webp',
+  'assets/glider-5.webp', 'assets/glider-6.webp', 'assets/glider-happy.webp', 'assets/glider-scared.webp',
+  'assets/cloud.webp',
 ];
 
 self.addEventListener('install', (e) => {

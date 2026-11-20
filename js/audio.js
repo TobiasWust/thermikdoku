@@ -73,5 +73,26 @@ export const sfx = {
     [523, 659, 784, 1047, 1319, 1568].forEach((f, i) =>
       tone({ f, dur: 0.4, type: 'triangle', vol: 0.09, delay: 0.25 + i * 0.09 }));
   },
-  star(i) { tone({ f: 880 * Math.pow(1.26, i), dur: 0.25, type: 'triangle', vol: 0.09 }); },
+  star(i) {
+    tone({ f: 880 * Math.pow(1.26, i), dur: 0.3, type: 'triangle', vol: 0.1 });
+    tone({ f: 1760 * Math.pow(1.26, i), dur: 0.2, type: 'sine', vol: 0.04, delay: 0.05 });
+  },
+  // Combo: Tonleiter, die mit jeder Stufe höher klettert
+  combo(n) {
+    const scale = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
+    const step = scale[Math.min(n - 2, scale.length - 1)];
+    const f = 660 * Math.pow(2, step / 12);
+    tone({ f, dur: 0.12, type: 'square', vol: 0.035 });
+    tone({ f: f * 1.5, dur: 0.18, type: 'triangle', vol: 0.07, delay: 0.06 });
+  },
+  sparkle() { [1568, 2093, 2637].forEach((f, i) => tone({ f, dur: 0.08, type: 'sine', vol: 0.035, delay: i * 0.035 })); },
+  tick() { tone({ f: 1200 + Math.random() * 300, dur: 0.03, type: 'square', vol: 0.02 }); },
+  milestone() { [784, 988, 1175].forEach((f, i) => tone({ f, dur: 0.14, type: 'triangle', vol: 0.07, delay: i * 0.08 })); },
+  whee() { tone({ f: 400, f2: 1400, dur: 0.45, type: 'sine', vol: 0.08 }); whoosh({ dur: 0.5, vol: 0.08, f: 500, f2: 3000 }); },
+  levelUp() {
+    whoosh({ dur: 1.2, vol: 0.1, f: 300, f2: 2500 });
+    const notes = [523, 659, 784, 1047, 784, 1047, 1319, 1568];
+    notes.forEach((f, i) => tone({ f, dur: i === notes.length - 1 ? 0.7 : 0.16, type: 'triangle', vol: 0.1, delay: i * 0.1 }));
+    notes.forEach((f, i) => tone({ f: f / 2, dur: 0.16, type: 'square', vol: 0.025, delay: i * 0.1 }));
+  },
 };
