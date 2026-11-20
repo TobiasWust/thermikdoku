@@ -117,19 +117,15 @@ img { -webkit-user-drag: none; user-select: none; }
   border: var(--line); box-shadow: var(--pop);
   transition: transform .1s, box-shadow .1s;
 }
-.btn::after {
-  content: ""; position: absolute; left: 10%; right: 10%; top: 4px; height: 22%;
-  border-radius: 20px; background: rgba(255, 255, 255, .3); pointer-events: none;
-}
 .btn:active { transform: translateY(5px); box-shadow: 0 0 0 var(--ink); }
 .btn > span { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; }
 .btn-big { font-size: 21px; font-weight: 900; letter-spacing: .2px; }
 .btn-small { font-size: 13px; font-weight: 700; opacity: .85; }
 .btn-ico { width: 28px; height: 28px; flex-shrink: 0; position: relative; z-index: 1; }
-.btn-primary { background: linear-gradient(180deg, #ff7b6e, var(--red)); color: #fff; text-shadow: 0 2px 0 rgba(43, 58, 85, .35); }
-.btn-sun { background: linear-gradient(180deg, #ffe37a, var(--yellow)); color: var(--ink); }
+.btn-primary { --base: linear-gradient(180deg, #ff7b6e, var(--red)); color: #fff; text-shadow: 0 2px 0 rgba(43, 58, 85, .35); }
+.btn-sun { --base: linear-gradient(180deg, #ffe37a, var(--yellow)); color: var(--ink); }
 .btn-sun .btn-ico { animation: spin 10s linear infinite; }
-.btn-light { background: var(--card); }
+.btn-light { --base: var(--card); }
 .btn.done-today .btn-small::after { content: " ✓"; }
 .link-btn { margin-top: 6px; font-size: 14px; color: var(--ink-soft); text-decoration: underline; padding: 8px; }
 
@@ -450,10 +446,9 @@ img { -webkit-user-drag: none; user-select: none; }
   border: var(--line); box-shadow: var(--pop);
   transition: transform .1s, box-shadow .1s;
 }
-.tool::after { content: ""; position: absolute; left: 14%; right: 14%; top: 4px; height: 26%; border-radius: 20px; background: rgba(255, 255, 255, .5); }
 .tool svg { width: 26px; height: 26px; }
 .tool:active { transform: translateY(5px); box-shadow: 0 0 0 var(--ink); }
-.tool-hint { background: linear-gradient(180deg, #ffe37a, var(--yellow)); }
+.tool-hint { --base: linear-gradient(180deg, #ffe37a, var(--yellow)); }
 .tool.spin svg { animation: spinBack .5s ease; }
 @keyframes spinBack { to { transform: rotate(-360deg); } }
 .tool.wiggle svg { animation: wiggleIco .5s ease; }
@@ -624,3 +619,20 @@ img { -webkit-user-drag: none; user-select: none; }
 .kofi-note b { font-weight: 900; font-size: 13.5px; }
 .kofi-cup { font-size: 28px; animation: bob 2.4s ease-in-out infinite; }
 .modal.show .kofi-note:not([hidden]) { animation: popIn .5s 2.2s cubic-bezier(.2, 1.6, .4, 1) both; }
+
+/* Bonbon-Glanz wie auf den Schirmen: heller Rand oben, Schattierung unten,
+   kleiner Glanzpunkt oben links – alles hinter Icon und Text */
+.btn, .tool, .icon-btn {
+  --gleam: radial-gradient(ellipse 13px 6px at 20% 22%, rgba(255, 255, 255, .95), rgba(255, 255, 255, 0) 100%);
+  --sheen: linear-gradient(180deg, rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 50%);
+  background: var(--gleam), var(--sheen), var(--base, var(--card));
+  box-shadow: var(--pop), inset 0 3px 0 rgba(255, 255, 255, .7), inset 0 -4px 0 rgba(43, 58, 85, .08);
+}
+.icon-btn {
+  --gleam: radial-gradient(ellipse 7px 4px at 26% 24%, rgba(255, 255, 255, .95), rgba(255, 255, 255, 0) 100%);
+  box-shadow: var(--pop-sm), inset 0 2px 0 rgba(255, 255, 255, .7), inset 0 -3px 0 rgba(43, 58, 85, .08);
+}
+.btn:active, .tool:active { box-shadow: 0 0 0 var(--ink), inset 0 3px 0 rgba(255, 255, 255, .7), inset 0 -4px 0 rgba(43, 58, 85, .08); }
+.icon-btn:active { box-shadow: 0 0 0 var(--ink), inset 0 2px 0 rgba(255, 255, 255, .7), inset 0 -3px 0 rgba(43, 58, 85, .08); }
+.btn-primary { --gleam: radial-gradient(ellipse 16px 7px at 12% 26%, rgba(255, 255, 255, .8), rgba(255, 255, 255, 0) 100%); }
+.btn-sun, .btn-light { --gleam: radial-gradient(ellipse 16px 7px at 12% 26%, rgba(255, 255, 255, .95), rgba(255, 255, 255, 0) 100%); }
