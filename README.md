@@ -1,5 +1,7 @@
 # Thermikdoku 🪂
 
+**Live:** https://thermikdoku.wust.io (Netlify, als PWA installierbar)
+
 Logikrätsel mit Gleitschirmen – fürs Handy optimiert, ohne Werbung, offline spielbar (PWA).
 
 ## Regeln
@@ -34,8 +36,14 @@ Logikrätsel mit Gleitschirmen – fürs Handy optimiert, ohne Werbung, offline 
 ```bash
 python3 -m http.server 8765
 ```
-Dann http://localhost:8765 öffnen. Für Offline/Installieren auf dem Handy auf einen HTTPS-Host legen
-(z. B. GitHub Pages, Netlify) und im Browser „Zum Home-Bildschirm“ wählen.
+Dann http://localhost:8765 öffnen.
+
+## Deployen
+Netlify-Projekt `thermikdoku`, Domain `thermikdoku.wust.io` (DNS-Zone wust.io liegt bei Netlify):
+```bash
+netlify deploy --prod --dir . --site 4066bd23-d18c-443b-8c6c-a55fec7523e8
+```
+Bei Änderungen an Dateien die Cache-Version in `sw.js` hochzählen.
 
 ## Aufbau
 - `js/puzzle.js`: Generator (Zonen wachsen lassen, Eindeutigkeit erzwingen), Logik-Löser und Schwierigkeitsbewertung
