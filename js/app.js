@@ -828,6 +828,14 @@ function showWin(stars, time, record, xp) {
   $('#win-hints').textContent = G.hints;
   $('#win-combo').textContent = G.bestCombo >= 2 ? `×${G.bestCombo}` : '–';
   $('#win-record').textContent = record;
+  // Einmaliger, freundlicher Ko-fi-Hinweis nach dem 10. gelösten Flug
+  const totalSolved = Object.values(store.stats).reduce((a, st) => a + (st.solved || 0), 0) + Object.keys(store.daily).length;
+  const kofi = $('#kofi-note');
+  kofi.hidden = true;
+  if (!store.kofiShown && totalSolved >= 10) {
+    store.kofiShown = true; save();
+    kofi.hidden = false;
+  }
   $('#win-next').textContent = G.mode === 'daily' ? 'Zum Menü' : `Neuer Flug · ${DIFFICULTIES[G.diff].name}`;
   $('[data-action="win-menu"]').style.display = G.mode === 'daily' ? 'none' : '';
   $$('.win-stars .star').forEach((s) => s.classList.remove('on'));

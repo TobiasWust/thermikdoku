@@ -606,3 +606,17 @@ img { -webkit-user-drag: none; user-select: none; }
 @media (min-width: 700px) { .screen { padding-left: 32px; padding-right: 32px; } }
 
 .legal-card .legal { flex: 1; min-height: 0; }
+
+/* Ko-fi */
+.app-footer-legal { flex-wrap: wrap; }
+.app-footer-legal a { color: #fff; }
+.kofi-link { display: inline-block; margin-top: 6px; }
+.kofi-note {
+  display: flex; align-items: center; gap: 10px; text-align: left; text-decoration: none; color: var(--ink);
+  background: #fff3d6; border: 2.5px solid var(--ink); border-radius: 16px; padding: 8px 12px;
+  font-size: 12.5px; font-weight: 700; line-height: 1.35;
+}
+.kofi-note[hidden] { display: none; }
+.kofi-note b { font-weight: 900; font-size: 13.5px; }
+.kofi-cup { font-size: 28px; animation: bob 2.4s ease-in-out infinite; }
+.modal.show .kofi-note:not([hidden]) { animation: popIn .5s 2.2s cubic-bezier(.2, 1.6, .4, 1) both; }
