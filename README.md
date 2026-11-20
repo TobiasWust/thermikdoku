@@ -10,7 +10,7 @@ Logikrätsel mit Gleitschirmen – fürs Handy optimiert, ohne Werbung, offline 
 - **Tippen**: leer → × → Schirm → leer
 - **Wischen**: viele × auf einmal setzen (oder löschen, wenn auf einem × begonnen)
 - **Lange drücken**: Schirm direkt setzen/entfernen
-- **Tipp**: logischer Hinweis (unbegrenzt), **Zurück**: Undo, **Neu**: Brett leeren (per Undo rückholbar)
+- **Tipp**: logischer Hinweis (unbegrenzt), **Zurück**: Undo, **Neu**: Brett leeren (per Undo rückholbar) oder anderes Rätsel
 
 ## Features
 - **Prozedural erzeugt**: jedes Rätsel ist neu, hat genau eine Lösung und ist **ohne Raten** lösbar
