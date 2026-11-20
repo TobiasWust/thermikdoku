@@ -983,6 +983,9 @@ document.addEventListener('click', (e) => {
       break;
     case 'settings': syncSettings(); openModal('#modal-settings'); break;
     case 'settings-close': closeModal('#modal-settings'); break;
+    case 'privacy': closeModal('#modal-settings'); openModal('#modal-privacy'); $('#modal-privacy .legal').scrollTop = 0; break;
+    case 'imprint': closeModal('#modal-settings'); openModal('#modal-imprint'); break;
+    case 'legal-close': closeModal('#modal-privacy'); closeModal('#modal-imprint'); break;
     case 'reset-progress':
       if (confirm('Wirklich Statistik und Spielstände löschen?')) {
         const s = store.settings, pool = store.pool;
@@ -1023,7 +1026,7 @@ $('#set-autox').addEventListener('change', (e) => { store.settings.autoX = e.tar
 let lastTouch = 0;
 document.addEventListener('touchend', (e) => {
   const now = Date.now();
-  if (now - lastTouch < 350 && !e.target.closest('.help-scroll')) e.preventDefault();
+  if (now - lastTouch < 350 && !e.target.closest('.help-scroll, .legal')) e.preventDefault();
   lastTouch = now;
 }, { passive: false });
 

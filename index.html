@@ -87,7 +87,14 @@
         <span><span class="btn-big">Tagesflug</span><span class="btn-small" id="daily-label">Heute</span></span>
       </button>
     </div>
-    <p class="footer-note">Jedes Rätsel neu · ohne Raten lösbar · ohne Werbung</p>
+    <footer class="app-footer">
+      <p>Made with <span class="heart">❤️</span> by <a href="https://wust.dev/" target="_blank" rel="noopener noreferrer">Wust</a></p>
+      <p class="app-footer-legal">
+        <button type="button" data-action="privacy">Datenschutz</button>
+        <span aria-hidden="true">·</span>
+        <button type="button" data-action="imprint">Impressum</button>
+      </p>
+    </footer>
   </section>
 
   <!-- Spiel -->
@@ -199,6 +206,82 @@
     <label class="toggle"><span>Automatische ×<small>Blockierte Felder anzeigen</small></span><input type="checkbox" id="set-autox"><i></i></label>
     <button class="btn btn-light" data-action="settings-close"><span class="btn-big">Fertig</span></button>
     <button class="link-btn" data-action="reset-progress">Fortschritt löschen</button>
+    <p class="settings-legal">Made with ❤️ by <a href="https://wust.dev/" target="_blank" rel="noopener noreferrer">Wust</a> · <button type="button" data-action="privacy">Datenschutz</button> · <button type="button" data-action="imprint">Impressum</button></p>
+  </div>
+</div>
+
+<!-- Datenschutz -->
+<div class="modal" id="modal-privacy" aria-hidden="true">
+  <div class="card legal-card">
+    <h2>Datenschutz</h2>
+    <div class="legal">
+      <p class="legal-meta">Thermikdoku · Stand: November 2026</p>
+      <section>
+        <h3>1. Verantwortlicher</h3>
+        <p>Verantwortlich für die Datenverarbeitung auf dieser Website im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:</p>
+        <p>Tobias Wust<br>E-Mail: <a href="mailto:kontakt@tobiaswust.de">kontakt@tobiaswust.de</a></p>
+      </section>
+      <section>
+        <h3>2. Überblick</h3>
+        <p>Thermikdoku ist ein Rätselspiel, das komplett in deinem Browser läuft. Es gibt <strong>keine Konten, keine Cookies, keine Werbung und kein Tracking</strong>. Einziger externer Dienst ist das Hosting bei <strong>Netlify</strong> (Abschnitt 4).</p>
+      </section>
+      <section>
+        <h3>3. Daten auf deinem Gerät</h3>
+        <p>Spielstand, Statistik, Flugmeilen und Einstellungen werden im lokalen Speicher deines Browsers (Local Storage) abgelegt. Damit das Spiel auch offline funktioniert, speichert ein Service Worker die App-Dateien im Browser-Cache.</p>
+        <ul>
+          <li>Diese Daten verlassen dein Gerät nie und sind für uns nicht einsehbar.</li>
+          <li>Du kannst sie jederzeit löschen: über „Fortschritt löschen“ in den Einstellungen oder indem du die Website-Daten in deinem Browser entfernst.</li>
+        </ul>
+        <p>Die Speicherung ist technisch erforderlich, um das von dir genutzte Spiel bereitzustellen (Art. 6 Abs. 1 lit. b DSGVO, § 25 Abs. 2 TDDDG).</p>
+      </section>
+      <section>
+        <h3>4. Hosting und Server-Logs (Netlify)</h3>
+        <p>Diese Website wird von <strong>Netlify, Inc.</strong> gehostet. Beim Aufruf verarbeitet Netlify automatisch technische Daten, die zur Auslieferung nötig sind, etwa IP-Adresse, Browsertyp und -version, Datum und Uhrzeit der Anfrage, die angefragte Datei und die übertragene Datenmenge. Wir nutzen diese Daten nicht für Tracking oder Analysen.</p>
+        <p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO – unser berechtigtes Interesse an einer sicheren und funktionierenden Website.</p>
+        <p>Netlify ist unser Auftragsverarbeiter auf Grundlage eines Auftragsverarbeitungsvertrags. Soweit Daten außerhalb der EU/des EWR verarbeitet werden, ist dies durch Standardvertragsklauseln abgesichert.</p>
+      </section>
+      <section>
+        <h3>5. Speicherdauer</h3>
+        <ul>
+          <li>Daten auf deinem Gerät bleiben dort, bis du sie löschst.</li>
+          <li>Server-Logs werden von Netlify nur so lange gespeichert, wie es technisch nötig ist.</li>
+        </ul>
+      </section>
+      <section>
+        <h3>6. Deine Rechte</h3>
+        <p>Nach der DSGVO hast du das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch gegen Verarbeitungen auf Grundlage berechtigter Interessen (Art. 21).</p>
+        <p>Wende dich dafür an <a href="mailto:kontakt@tobiaswust.de">kontakt@tobiaswust.de</a>. Außerdem hast du das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu beschweren.</p>
+      </section>
+      <section>
+        <h3>7. Änderungen</h3>
+        <p>Wir passen diese Erklärung an, wenn sich das Spiel oder die rechtlichen Anforderungen ändern. Es gilt die jeweils aktuelle Fassung.</p>
+      </section>
+    </div>
+    <button class="btn btn-light" data-action="legal-close"><span class="btn-big">Schließen</span></button>
+  </div>
+</div>
+
+<!-- Impressum -->
+<div class="modal" id="modal-imprint" aria-hidden="true">
+  <div class="card legal-card">
+    <h2>Impressum</h2>
+    <div class="legal">
+      <p class="legal-meta">Angaben gemäß § 5 DDG</p>
+      <section>
+        <h3>Kontakt</h3>
+        <p>Tobias Wust<br>Vor den Kämpen 20<br>30851 Langenhagen<br>Deutschland</p>
+        <p>E-Mail: <a href="mailto:kontakt@tobiaswust.de">kontakt@tobiaswust.de</a></p>
+      </section>
+      <section>
+        <h3>Verantwortlich für den Inhalt</h3>
+        <p>Tobias Wust (Anschrift wie oben)</p>
+      </section>
+      <section>
+        <h3>Über dieses Projekt</h3>
+        <p>Thermikdoku ist ein privates, nicht-kommerzielles Projekt. Wie mit Daten umgegangen wird, steht in der <strong>Datenschutzerklärung</strong>.</p>
+      </section>
+    </div>
+    <button class="btn btn-light" data-action="legal-close"><span class="btn-big">Schließen</span></button>
   </div>
 </div>
 

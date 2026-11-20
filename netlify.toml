@@ -1,0 +1,14 @@
+# Statische Seite ohne Build-Schritt
+[build]
+  publish = "."
+
+# Service Worker nie zwischenspeichern, damit Updates sofort ankommen
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
