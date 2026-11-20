@@ -134,22 +134,17 @@
     </header>
     <div class="help-scroll">
       <div class="help-example"><div class="board mini" id="help-board"></div></div>
-      <ol class="rules">
-        <li><b>Jede Reihe</b> braucht genau einen Gleitschirm.</li>
-        <li><b>Jede Spalte</b> braucht genau einen Gleitschirm.</li>
-        <li><b>Jede farbige Zone</b> braucht genau einen Gleitschirm.</li>
-        <li><b>Abstand halten!</b> Schirme dürfen sich nicht berühren, auch nicht schräg.</li>
-      </ol>
-      <div class="controls-card">
-        <h3>Steuerung</h3>
-        <p><span class="kbd">Tippen</span> setzt ein <b>×</b> (hier fliegt keiner). Nochmal tippen entfernt es wieder.</p>
-        <p><span class="kbd">Doppeltippen</span> setzt einen <b>Schirm</b>, egal was vorher im Feld war. Einmal auf einen Schirm tippen entfernt ihn.</p>
-        <p><span class="kbd">Wischen</span> setzt viele × auf einmal.</p>
-        <p><span class="kbd">Tipp</span> erklärt dir den nächsten logischen Schritt, so oft du willst.</p>
-        <h3>Belohnungen</h3>
-        <p>Setzt du Schirme schnell hintereinander ohne Zusammenstoß, steigt deine <b>Combo</b>. Jeder Flug bringt <b>Flugmeilen</b> für deinen Pilotenrang. Ohne Tipps und Zusammenstöße gibt es <b>3 Sterne</b> und doppelte Meilen.</p>
-        <p>Jedes Rätsel wird neu erzeugt, hat genau eine Lösung und ist <b>ohne Raten</b> lösbar.</p>
+      <div class="rule-chips help-chips">
+        <div class="chip"><b>1</b> Schirm pro Farbzone</div>
+        <div class="chip"><b>1</b> Schirm pro Reihe und Spalte</div>
+        <div class="chip">Nicht berühren, auch nicht schräg</div>
       </div>
+      <div class="controls-card">
+        <div class="ctl"><span class="ctl-ico"><svg class="x"><use href="#i-x"/></svg></span><b>Tippen</b><span>Kreuz setzen oder entfernen</span></div>
+        <div class="ctl"><span class="ctl-ico"><img src="assets/glider-1.webp" alt=""></span><b>Doppeltippen</b><span>Schirm setzen</span></div>
+        <div class="ctl"><span class="ctl-ico swipe"><svg class="x"><use href="#i-x"/></svg><svg class="x"><use href="#i-x"/></svg><svg class="x"><use href="#i-x"/></svg></span><b>Wischen</b><span>viele Kreuze auf einmal</span></div>
+      </div>
+      <p class="help-note">Nicht weiter? <b>Tipp</b> erklärt den nächsten Schritt.<br>Ohne Tipps und Zusammenstöße gibt's <b>3 Sterne</b>.</p>
       <button class="btn btn-primary" data-action="help-close"><span class="btn-big">Los geht's!</span></button>
     </div>
   </section>

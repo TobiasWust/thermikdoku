@@ -1,5 +1,5 @@
 // Offline-Cache für Thermikdoku
-const CACHE = 'thermikdoku-v6';
+const CACHE = 'thermikdoku-v7';
 const ASSETS = [
   './', 'index.html', 'css/style.css', 'js/app.js', 'js/puzzle.js', 'js/audio.js', 'js/worker.js',
   'manifest.webmanifest', 'icons/icon-64.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png',
@@ -23,7 +23,7 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, { cache: 'no-cache' })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(e.request, copy));
