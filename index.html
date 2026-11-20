@@ -120,7 +120,7 @@
       </div>
     </div>
     <footer class="app-footer">
-      <p>Made with <span class="heart">❤️</span> by <a href="https://wust.dev/" target="_blank" rel="noopener noreferrer">Wust</a></p>
+      <p>Made with <span class="heart">❤️</span> by <a href="https://wust.dev/" target="_blank" rel="noopener noreferrer">Wust</a><span class="install-link" hidden> · <button type="button" data-action="install">📲 Als App installieren</button></span></p>
       <p class="app-footer-legal">
         <button type="button" data-action="privacy">Datenschutz</button>
         <span aria-hidden="true">·</span>
@@ -237,6 +237,21 @@
   </div>
 </div>
 
+<!-- Installieren auf iPhone/iPad (Safari kennt keinen Installier-Dialog) -->
+<div class="modal" id="modal-install" aria-hidden="true">
+  <div class="card">
+    <div class="win-glider"><img src="assets/glider-happy.webp" alt=""></div>
+    <h2>Als App installieren</h2>
+    <ol class="install-steps">
+      <li><span>Tippe in Safari auf <b>Teilen</b> <svg class="share-ico" viewBox="0 0 24 24" aria-label="Teilen-Symbol"><path d="M12 3v12M8 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 11H6v9h12v-9h-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span></li>
+      <li><span>Wähle <b>Zum Home-Bildschirm</b></span></li>
+      <li><span>Tippe auf <b>Hinzufügen</b></span></li>
+    </ol>
+    <p class="modal-text">Dann startet Thermikdoku wie eine App und läuft auch offline.</p>
+    <button class="btn btn-primary" data-action="install-close"><span class="btn-big">Alles klar</span></button>
+  </div>
+</div>
+
 <!-- Neu-Auswahl -->
 <div class="modal" id="modal-new" aria-hidden="true">
   <div class="card">
@@ -255,6 +270,7 @@
     <label class="toggle"><span>Vibration</span><input type="checkbox" id="set-vibe"><i></i></label>
     <label class="toggle"><span>Farbenblind-Modus<small>Zonen zusätzlich mit Symbolen</small></span><input type="checkbox" id="set-cb"><i></i></label>
     <label class="toggle"><span>Automatische ×<small>Blockierte Felder anzeigen</small></span><input type="checkbox" id="set-autox"><i></i></label>
+    <button class="btn btn-light install-btn" data-action="install" hidden><span class="btn-big">📲 Als App installieren</span></button>
     <button class="btn btn-light" data-action="settings-close"><span class="btn-big">Fertig</span></button>
     <button class="link-btn" data-action="reset-progress">Fortschritt löschen</button>
     <p class="settings-legal">Made with ❤️ by <a href="https://wust.dev/" target="_blank" rel="noopener noreferrer">Wust</a> · <button type="button" data-action="privacy">Datenschutz</button> · <button type="button" data-action="imprint">Impressum</button><br><a class="kofi-link" href="https://ko-fi.com/tobiaswust" target="_blank" rel="noopener noreferrer">☕ Gefällt dir Thermikdoku? Spendier mir einen Kaffee</a></p>

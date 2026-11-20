@@ -352,6 +352,15 @@ img { -webkit-user-drag: none; user-select: none; }
 @keyframes timerPulse { 50% { transform: scale(1.08); } }
 .no-hints .tool-hint { display: none; }
 .title-mods { -webkit-text-stroke: 0; font-size: 16px; vertical-align: 2px; }
+/* Installieren */
+.install-link button { color: #fff; font-weight: 900; text-decoration: underline; text-underline-offset: 2px; padding: 2px 0; }
+.install-steps { margin: 0; padding: 0 0 0 4px; list-style: none; counter-reset: step; text-align: left; display: flex; flex-direction: column; gap: 8px; }
+.install-steps li { counter-increment: step; display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; }
+.install-steps li::before {
+  content: counter(step); flex-shrink: 0; width: 24px; height: 24px; display: grid; place-items: center;
+  border-radius: 50%; background: var(--yellow); border: 2px solid var(--ink); font-size: 13px; font-weight: 900;
+}
+.share-ico { display: inline-block; width: 20px; height: 20px; vertical-align: -4px; color: #1f7aff; }
 .modal-text { margin: 0; font-size: 14.5px; font-weight: 700; color: var(--ink-soft); line-height: 1.4; }
 .streak { display: inline-block; margin-left: 4px; animation: flame 1s ease-in-out infinite alternate; }
 @keyframes flame { to { transform: scale(1.25) rotate(8deg); } }

@@ -1217,6 +1217,8 @@ document.addEventListener('click', (e) => {
       if (helpReturn === 'start' && pendingStart) { helpReturn = 'home'; startGame(pendingStart); pendingStart = null; }
       else show(helpReturn === 'start' ? 'home' : helpReturn);
       break;
+    case 'install': install(); break;
+    case 'install-close': closeModal('#modal-install'); break;
     case 'settings': syncSettings(); openModal('#modal-settings'); break;
     case 'settings-close': closeModal('#modal-settings'); break;
     case 'privacy': closeModal('#modal-settings'); openModal('#modal-privacy'); $('#modal-privacy .legal').scrollTop = 0; break;
@@ -1351,6 +1353,29 @@ setInterval(applyDaytime, 60000);
   }).join('');
 })();
 document.addEventListener('visibilitychange', () => { if (!document.hidden) applyDaytime(); });
+
+// ---------- Als App installieren ----------
+// Chrome, Edge & Co. liefern einen Installier-Dialog; iPhone/iPad brauchen eine Anleitung.
+let installPrompt = null;
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function updateInstall() {
+  const can = !isStandalone() && (!!installPrompt || isIOS());
+  $$('.install-link, .install-btn').forEach((el) => (el.hidden = !can));
+}
+addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installPrompt = e; updateInstall(); });
+addEventListener('appinstalled', () => { installPrompt = null; updateInstall(); toast('Installiert! Viel Spaß beim Fliegen.', 'good'); });
+async function install() {
+  closeModal('#modal-settings');
+  if (installPrompt) {
+    const p = installPrompt;
+    installPrompt = null;
+    p.prompt();
+    try { await p.userChoice; } catch {}
+    updateInstall();
+  } else if (isIOS()) openModal('#modal-install');
+}
+updateInstall();
 
 // ---------- Start ----------
 localStorage.removeItem('thermikdoku.v1');
