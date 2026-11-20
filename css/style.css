@@ -285,7 +285,19 @@ img { -webkit-user-drag: none; user-select: none; }
   padding: 9px 8px; border-radius: 16px; font-size: 15px;
 }
 
-.progress { display: flex; justify-content: center; gap: 2px; margin: 8px 0 0; min-height: 34px; }
+.rule-chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0 0; flex-shrink: 0; }
+.chip {
+  display: grid; place-items: center; text-align: center;
+  min-height: 50px; padding: 5px 6px; border-radius: 16px;
+  background: rgba(255, 255, 255, .92); border: 2.5px solid var(--ink); box-shadow: var(--pop-sm);
+  font-size: 12px; font-weight: 800; line-height: 1.2;
+  animation: cardIn .5s cubic-bezier(.2, 1.5, .4, 1) both;
+}
+.chip:nth-child(2) { animation-delay: .08s; } .chip:nth-child(3) { animation-delay: .16s; }
+.chip b { display: inline-grid; place-items: center; width: 18px; height: 18px; margin-right: 1px; border-radius: 50%; background: var(--yellow); border: 2px solid var(--ink); font-size: 11px; font-weight: 900; vertical-align: 1px; }
+.chip.alert { animation: chipAlert .6s ease; background: #ffd6de; }
+@keyframes chipAlert { 15% { transform: rotate(-5deg) scale(1.1); } 35% { transform: rotate(4deg) scale(1.1); } 55% { transform: rotate(-3deg) scale(1.05); } 75% { transform: rotate(2deg); } }
+.progress { display: flex; justify-content: center; gap: 2px; margin: 6px 0 0; min-height: 34px; }
 .progress .pg { width: 34px; height: 34px; position: relative; }
 .progress .pg img { width: 100%; height: 100%; filter: grayscale(1) brightness(1.3); opacity: .35; transition: filter .3s, opacity .3s; }
 .progress .pg.on img { filter: none; opacity: 1; }
@@ -298,8 +310,8 @@ img { -webkit-user-drag: none; user-select: none; }
 .board-wrap { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; min-height: 0; }
 .board {
   --n: 5; --thick: 3px;
-  width: min(100%, 560px, calc(100vh - 300px - var(--safe-t) - var(--safe-b)));
-  width: min(100%, 560px, calc(100dvh - 300px - var(--safe-t) - var(--safe-b)));
+  width: min(100%, 560px, calc(100vh - 360px - var(--safe-t) - var(--safe-b)));
+  width: min(100%, 560px, calc(100dvh - 360px - var(--safe-t) - var(--safe-b)));
   aspect-ratio: 1;
   display: grid;
   grid-template-columns: repeat(var(--n), 1fr);

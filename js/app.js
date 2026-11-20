@@ -443,6 +443,8 @@ function setCells(changes, { sound = true, hint = false } = {}) {
       const why = info.reasons.get(placed);
       toast({ touch: 'Kollisionsgefahr! Schirme dürfen sich nicht berühren.', row: 'Zwei Schirme in einer Reihe!', col: 'Zwei Schirme in einer Spalte!', zone: 'Zwei Schirme in einer Zone!' }[why], 'bad');
       quake();
+      const chip = document.querySelector(`.chip[data-rule="${{ row: 'line', col: 'line', zone: 'zone', touch: 'touch' }[why]}"]`);
+      if (chip) { chip.classList.remove('alert'); void chip.offsetWidth; chip.classList.add('alert'); setTimeout(() => chip.classList.remove('alert'), 1600); }
     } else {
       if (sound) sfx.place();
       vibe(12);
