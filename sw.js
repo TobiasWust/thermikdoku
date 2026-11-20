@@ -1,8 +1,8 @@
 // Offline-Cache für Thermikdoku
-const CACHE = 'thermikdoku-v4';
+const CACHE = 'thermikdoku-v5';
 const ASSETS = [
   './', 'index.html', 'css/style.css', 'js/app.js', 'js/puzzle.js', 'js/audio.js', 'js/worker.js',
-  'manifest.webmanifest', 'icons/icon-64.png', 'icons/icon-180.png', 'icons/icon-512.png',
+  'manifest.webmanifest', 'icons/icon-64.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png',
   'assets/glider-1.webp', 'assets/glider-2.webp', 'assets/glider-3.webp', 'assets/glider-4.webp',
   'assets/glider-5.webp', 'assets/glider-6.webp', 'assets/glider-happy.webp', 'assets/glider-scared.webp',
   'assets/cloud.webp',
