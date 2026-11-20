@@ -2,7 +2,7 @@
 
 Ein Logikrätsel mit Gleitschirmen: kostenlos, ohne Werbung, fürs Handy gemacht und offline spielbar.
 
-**▶ Jetzt spielen: [thermikdoku.wust.io](https://thermikdoku.wust.io)**
+**▶ Jetzt spielen: [thermikdoku.de](https://thermikdoku.de)**
 
 Auf dem Handy lässt sich Thermikdoku über „Zum Home-Bildschirm“ wie eine App installieren.
 
