@@ -83,31 +83,15 @@
       <h1 class="title">Thermik<span>doku</span></h1>
       <p class="subtitle">Ein Schirm pro Reihe, Spalte und Thermik.<br>Nicht zusammenstoßen!</p>
     </div>
-    <div class="home-buttons">
-      <button class="btn btn-primary" data-action="continue">
-        <span><span class="btn-big">Abheben</span>
-        <span class="btn-small" id="continue-label">Level 1</span></span>
-      </button>
+    <div class="home-play">
+      <h3 class="home-label">Wähle deinen Flug</h3>
+      <div class="diff-grid" id="diff-grid"></div>
       <button class="btn btn-sun" data-action="daily">
         <svg class="btn-ico"><use href="#i-sun"/></svg>
         <span><span class="btn-big">Tagesflug</span><span class="btn-small" id="daily-label">Heute</span></span>
       </button>
-      <button class="btn btn-light" data-action="levels">
-        <svg class="btn-ico"><use href="#i-grid"/></svg>
-        <span class="btn-big">Alle Level</span>
-      </button>
     </div>
-    <p class="footer-note">Ohne Werbung · offline spielbar</p>
-  </section>
-
-  <!-- Levelauswahl -->
-  <section id="screen-levels" class="screen">
-    <header class="topbar">
-      <button class="icon-btn" data-action="home" aria-label="Zurück"><svg><use href="#i-back"/></svg></button>
-      <h2>Flugbuch</h2>
-      <div class="stars-total"><svg><use href="#i-star"/></svg><span id="stars-total">0</span></div>
-    </header>
-    <div class="levels-scroll" id="levels-list"></div>
+    <p class="footer-note">Jedes Rätsel neu erzeugt · ohne Raten lösbar · ohne Werbung</p>
   </section>
 
   <!-- Spiel -->
@@ -152,7 +136,8 @@
         <p><span class="kbd">Tippen</span> setzt ein <b>×</b> (hier fliegt keiner), nochmal tippen setzt einen <b>Schirm</b>, ein drittes Mal leert das Feld.</p>
         <p><span class="kbd">Wischen</span> setzt viele × auf einmal.</p>
         <p><span class="kbd">Lange drücken</span> setzt sofort einen Schirm.</p>
-        <p><span class="kbd">Tipp</span> hilft dir weiter, so oft du willst. Ohne Tipps und Zusammenstöße gibt es 3 Sterne.</p>
+        <p><span class="kbd">Tipp</span> erklärt dir den nächsten logischen Schritt, so oft du willst. Ohne Tipps und Zusammenstöße gibt es 3 Sterne.</p>
+        <p>Jedes Rätsel wird neu erzeugt, hat genau eine Lösung und ist <b>ohne Raten</b> lösbar. Je schwerer die Stufe, desto größer das Feld und desto kniffliger die Denkschritte.</p>
       </div>
       <button class="btn btn-primary" data-action="help-close"><span class="btn-big">Los geht's!</span></button>
     </div>
@@ -177,6 +162,16 @@
     <p class="win-record" id="win-record"></p>
     <button class="btn btn-primary" data-action="next"><span class="btn-big" id="win-next">Nächster Flug</span></button>
     <button class="btn btn-light" data-action="win-menu"><span class="btn-big">Menü</span></button>
+  </div>
+</div>
+
+<!-- Neu-Auswahl -->
+<div class="modal" id="modal-new" aria-hidden="true">
+  <div class="card">
+    <h2>Neu starten?</h2>
+    <button class="btn btn-light" data-action="clear-board"><span class="btn-big">Brett leeren</span></button>
+    <button class="btn btn-primary" data-action="new-puzzle" id="new-puzzle-btn"><span class="btn-big">Anderes Rätsel</span></button>
+    <button class="link-btn" data-action="new-cancel">Abbrechen</button>
   </div>
 </div>
 

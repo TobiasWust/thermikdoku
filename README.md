@@ -13,9 +13,18 @@ Logikrätsel mit Gleitschirmen – fürs Handy optimiert, ohne Werbung, offline 
 - **Tipp**: logischer Hinweis (unbegrenzt), **Zurück**: Undo, **Neu**: Brett leeren (per Undo rückholbar)
 
 ## Features
-- Unendlich viele Level mit wachsender Größe (5×5 bis 10×10), jedes eindeutig lösbar
-- Täglicher „Tagesflug“ mit Serienzähler
-- Sterne, Bestzeiten und Spielstand werden lokal gespeichert
+- **Prozedural erzeugt**: jedes Rätsel ist neu, hat genau eine Lösung und ist **ohne Raten** lösbar
+- **4 Schwierigkeitsstufen**, bewertet nach den nötigen Denkschritten:
+  | Stufe | Feld | Techniken |
+  |---|---|---|
+  | Leicht | 5×5 / 6×6 | Einzelplatz, Eingesperrt |
+  | Mittel | 6×6 / 7×7 | + Blockade |
+  | Schwer | 8×8 | + Gruppen (ggf. Probeflug) |
+  | Experte | 9×9 / 10×10 | Gruppen + Probeflug, viele harte Schritte |
+- Tipps nutzen denselben Logik-Löser und erklären den nächsten Schritt
+- Täglicher „Tagesflug“ (Stufe je nach Wochentag) mit Serienzähler
+- Statistik pro Stufe (gelöst, Bestzeit), Spielstand wird gespeichert
+- Erzeugung im Web Worker mit Vorrat, damit neue Rätsel sofort da sind
 - Animationen: einfliegende Schirme, Thermik-Welle, Kollisions-Wackeln, Abheben und Konfetti beim Sieg
 - Synth-Sounds per WebAudio, Vibration (Android)
 
@@ -27,7 +36,8 @@ Dann http://localhost:8765 öffnen. Für Offline/Installieren auf dem Handy auf 
 (z. B. GitHub Pages, Netlify) und im Browser „Zum Home-Bildschirm“ wählen.
 
 ## Aufbau
-- `js/puzzle.js`: Generator (zufällige Platzierung, Zonen wachsen lassen, Eindeutigkeit per Solver erzwingen)
+- `js/puzzle.js`: Generator (Zonen wachsen lassen, Eindeutigkeit erzwingen), Logik-Löser und Schwierigkeitsbewertung
+- `js/worker.js`: erzeugt Rätsel im Hintergrund
 - `js/app.js`: Spiel-Logik, UI, Tipps, Animationen
 - `js/audio.js`: Sounds
 - `css/style.css`: Styles und Animationen

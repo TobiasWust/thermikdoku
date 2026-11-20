@@ -1,4 +1,4 @@
-import { generatePuzzle, sizeForLevel, levelSeed, mulberry32, shuffle } from './puzzle.js';
+import { generateForDifficulty, DIFFICULTIES, mulberry32, shuffle, createLogicState, placeIn, nextLogicStep } from './puzzle.js';
 import { sfx, setSoundEnabled, unlockAudio } from './audio.js';
 
 const $ = (s) => document.querySelector(s);
@@ -11,14 +11,20 @@ const CANOPIES = [
   ['#14a37f', '#f9e04b'], ['#7b2ff7', '#00d4ff'], ['#ff3d3d', '#ffffff'],
   ['#ff8c00', '#2b3a55'], ['#00a8e8', '#ffef5a'], ['#c0392b', '#f5d76e'], ['#2ecc71', '#1f3a93'],
 ];
-const SIZE_NAMES = { 5: 'Übungshang', 6: 'Hausberg', 7: 'Streckenflug', 8: 'Alpenpass', 9: 'Hochalpin', 10: 'Himalaya' };
-const SIZE_RANGES = [[5, 1, 8], [6, 9, 25], [7, 26, 50], [8, 51, 90], [9, 91, 140], [10, 141, Infinity]];
-const DAILY_SIZES = [9, 6, 7, 7, 8, 8, 9]; // So..Sa
+const DIFF_KEYS = ['leicht', 'mittel', 'schwer', 'experte'];
+const DAILY_DIFF = ['experte', 'leicht', 'mittel', 'mittel', 'schwer', 'schwer', 'experte']; // So..Sa
 
 // ---------- Speicher ----------
-const STORE_KEY = 'thermikdoku.v1';
+const STORE_KEY = 'thermikdoku.v2';
 function defaults() {
-  return { unlocked: 1, stars: {}, best: {}, daily: {}, progress: {}, settings: { sound: true, vibe: true, autoX: false }, seenHelp: false };
+  return {
+    settings: { sound: true, vibe: true, autoX: false },
+    seenHelp: false,
+    stats: {},      // diff -> { solved, best, perfect }
+    daily: {},      // datum -> sterne
+    current: {},    // key -> { puzzle, cells, elapsed, hints, mistakes }
+    pool: {},       // diff -> vorab erzeugtes Rätsel
+  };
 }
 const store = (() => {
   try {
@@ -29,6 +35,7 @@ const store = (() => {
 })();
 function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch {} }
 setSoundEnabled(store.settings.sound);
+const statsOf = (d) => (store.stats[d] ||= { solved: 0, best: null, perfect: 0 });
 
 function vibe(p) { if (store.settings.vibe && navigator.vibrate) { try { navigator.vibrate(p); } catch {} } }
 
@@ -36,16 +43,58 @@ function vibe(p) { if (store.settings.vibe && navigator.vibrate) { try { navigat
 const fmtTime = (s) => { s = Math.floor(s); const m = Math.floor(s / 60); return `${m}:${String(s % 60).padStart(2, '0')}`; };
 const todayStr = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const nextFrame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-const puzzleCache = new Map();
-function getPuzzle(key, n, seed) {
-  if (!puzzleCache.has(key)) puzzleCache.set(key, generatePuzzle(n, seed));
-  return puzzleCache.get(key);
-}
+const randomSeed = () => crypto.getRandomValues(new Uint32Array(1))[0];
+const sizeLabel = (d) => DIFFICULTIES[d].sizes.map((n) => `${n}×${n}`).join(' / ');
 
 function gliderSVG(region, extraClass = '') {
   const [c1, c2] = CANOPIES[region % CANOPIES.length];
   return `<div class="g-bob ${extraClass}" style="--c1:${c1};--c2:${c2};--bd:-${(Math.random() * 3).toFixed(2)}s"><svg viewBox="0 0 100 100"><use href="#glider"/></svg></div>`;
+}
+
+// ---------- Rätsel-Erzeugung im Hintergrund ----------
+let worker = null;
+const pending = new Map();
+let reqId = 0;
+function syncGenerate(job) {
+  setTimeout(() => job.resolve(generateForDifficulty(job.difficulty, job.seed)), 0);
+}
+try {
+  worker = new Worker('js/worker.js', { type: 'module' });
+  worker.onmessage = (e) => {
+    const job = pending.get(e.data.id);
+    if (!job) return;
+    pending.delete(e.data.id);
+    if (e.data.error) syncGenerate(job); else job.resolve(e.data.puzzle);
+  };
+  worker.onerror = () => {
+    worker = null;
+    for (const job of pending.values()) syncGenerate(job);
+    pending.clear();
+  };
+} catch { worker = null; }
+
+function generate(difficulty, seed = randomSeed()) {
+  return new Promise((resolve) => {
+    const job = { difficulty, seed, resolve };
+    if (!worker) return syncGenerate(job);
+    const id = ++reqId;
+    pending.set(id, job);
+    worker.postMessage({ id, difficulty, seed });
+  });
+}
+
+const refilling = new Set();
+function refillPool(d) {
+  if (store.pool[d] || refilling.has(d)) return;
+  refilling.add(d);
+  generate(d).then((p) => { store.pool[d] = p; save(); refilling.delete(d); });
+}
+async function takePuzzle(d) {
+  let p = store.pool[d];
+  if (p) { delete store.pool[d]; save(); }
+  else p = await generate(d);
+  refillPool(d);
+  return p;
 }
 
 // ---------- Screens ----------
@@ -54,7 +103,6 @@ function show(name) {
   $$('.screen').forEach((s) => s.classList.toggle('active', s.id === `screen-${name}`));
   currentScreen = name;
   if (name === 'home') renderHome();
-  if (name === 'levels') renderLevels();
   if (name !== 'game') pauseTimer(); else resumeTimer();
 }
 
@@ -66,47 +114,30 @@ function dailyStreak() {
   return streak;
 }
 function renderHome() {
-  $('#continue-label').textContent = `Level ${store.unlocked} · ${SIZE_NAMES[sizeForLevel(store.unlocked)]}`;
+  $('#diff-grid').innerHTML = DIFF_KEYS.map((k, idx) => {
+    const d = DIFFICULTIES[k];
+    const st = statsOf(k);
+    const icons = Array.from({ length: 4 }, (_, i) => `<svg class="${i < d.icons ? 'on' : ''}" viewBox="0 0 100 100"><use href="#glider"/></svg>`).join('');
+    const info = st.solved ? `${st.solved} gelöst · ⏱ ${fmtTime(st.best)}` : 'Noch nicht geflogen';
+    const resume = store.current[k] ? '<span class="badge">Fortsetzen</span>' : '';
+    return `<button class="diff-card diff-${k}" data-diff="${k}" style="--k:${idx}">
+      ${resume}
+      <span class="diff-icons">${icons}</span>
+      <span class="diff-name">${d.name}</span>
+      <span class="diff-size">${sizeLabel(k)} · ${d.place}</span>
+      <span class="diff-info">${info}</span>
+    </button>`;
+  }).join('');
   const done = !!store.daily[todayStr()];
   const streak = dailyStreak();
-  const btn = $('[data-action="daily"]');
-  btn.classList.toggle('done-today', done);
-  const n = DAILY_SIZES[new Date().getDay()];
-  $('#daily-label').textContent = (done ? 'Geschafft' : `${n}×${n} · Heute`) + (streak > 1 ? ` · ${streak} Tage in Folge` : '');
-}
-
-// ---------- Levelauswahl ----------
-function renderLevels() {
-  const list = $('#levels-list');
-  const maxShow = Math.max(store.unlocked + 15, 50);
-  let html = ''; let k = 0;
-  for (const [n, from, to] of SIZE_RANGES) {
-    if (from > maxShow) break;
-    const end = Math.min(to, maxShow);
-    html += `<div class="level-section"><h3>${n}×${n} · ${SIZE_NAMES[n]} <small>Level ${from}${to === Infinity ? '+' : '–' + to}</small></h3><div class="level-grid">`;
-    for (let l = from; l <= end; l++) {
-      const st = store.stars[l] || 0;
-      const locked = l > store.unlocked;
-      const cur = l === store.unlocked;
-      const kk = Math.min(k++, 40);
-      if (locked) {
-        html += `<button class="lvl locked" style="--k:${kk}" disabled><svg class="lock"><use href="#i-lock"/></svg></button>`;
-      } else {
-        const stars = [0, 1, 2].map((i) => `<svg class="${i < st ? 'on' : ''}"><use href="#i-star"/></svg>`).join('');
-        html += `<button class="lvl${cur ? ' current' : ''}" style="--k:${kk}" data-level="${l}">${l}<span class="lvl-stars">${stars}</span></button>`;
-      }
-    }
-    html += '</div></div>';
-  }
-  list.innerHTML = html;
-  $('#stars-total').textContent = Object.values(store.stars).reduce((a, b) => a + b, 0);
-  const cur = list.querySelector('.lvl.current');
-  if (cur) setTimeout(() => cur.scrollIntoView({ block: 'center', behavior: 'smooth' }), 120);
+  $('[data-action="daily"]').classList.toggle('done-today', done);
+  const dd = DIFFICULTIES[DAILY_DIFF[new Date().getDay()]];
+  $('#daily-label').textContent = (done ? 'Heute geschafft' : `Heute: ${dd.name}`) + (streak > 1 ? ` · ${streak} Tage in Folge` : '');
 }
 
 // ---------- Spielzustand ----------
 const G = {
-  key: null, mode: 'level', level: 1, date: null,
+  key: null, mode: 'free', diff: 'leicht', date: null,
   n: 5, regions: null, solution: null, colors: null,
   cells: null, history: [], hints: 0, mistakes: 0,
   elapsed: 0, startedAt: null, done: false,
@@ -135,55 +166,72 @@ document.addEventListener('visibilitychange', () => {
 
 function saveProgress() {
   if (!G.key || !G.cells || G.done) return;
-  const any = G.cells.some((v) => v);
-  if (!any && G.hints === 0) { delete store.progress[G.key]; }
-  else store.progress[G.key] = { cells: Array.from(G.cells), elapsed: Math.floor(G.elapsed), hints: G.hints, mistakes: G.mistakes };
+  const cur = store.current[G.key];
+  if (!cur) return;
+  cur.cells = Array.from(G.cells);
+  cur.elapsed = Math.floor(G.elapsed);
+  cur.hints = G.hints;
+  cur.mistakes = G.mistakes;
   save();
 }
 
-async function startGame({ mode, level, date }) {
+let startToken = 0;
+async function startGame({ mode, diff, fresh = false }) {
   unlockAudio();
   pauseTimer();
-  G.mode = mode;
-  let n, seed, key, title, sub;
+  const token = ++startToken;
+  let key, title, sub, getPuzzle;
   if (mode === 'daily') {
-    date = date || todayStr();
-    const d = new Date(date + 'T12:00:00');
-    n = DAILY_SIZES[d.getDay()];
-    seed = Number(date.replaceAll('-', '')) * 31 + 7;
-    key = 'D' + date; title = 'Tagesflug';
-    sub = `${n}×${n} · ${d.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}`;
+    const date = todayStr();
+    const day = new Date(date + 'T12:00:00');
+    diff = DAILY_DIFF[day.getDay()];
+    key = 'D' + date;
+    title = 'Tagesflug';
+    sub = `${DIFFICULTIES[diff].name} · ${day.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}`;
+    getPuzzle = () => generate(diff, Number(date.replaceAll('-', '')) * 31 + 7);
     G.date = date;
+    // alte Tagesflüge aufräumen
+    for (const k of Object.keys(store.current)) if (k.startsWith('D') && k !== key) delete store.current[k];
   } else {
-    n = sizeForLevel(level); seed = levelSeed(level);
-    key = 'L' + level; title = `Level ${level}`;
-    sub = `${n}×${n} · ${SIZE_NAMES[n]}`;
-    G.level = level;
+    key = diff;
+    title = DIFFICULTIES[diff].name;
+    sub = `Flug Nr. ${statsOf(diff).solved + 1} · ${DIFFICULTIES[diff].place}`;
+    getPuzzle = () => takePuzzle(diff);
+    if (fresh) delete store.current[key];
   }
+  G.mode = mode; G.diff = diff;
   $('#game-title').textContent = title;
   $('#game-sub').textContent = sub;
+  $('#timer').textContent = '0:00';
   $('#board').innerHTML = '';
   $('#progress').innerHTML = '';
-  $('#loading').classList.add('show');
+  G.cells = null; G.key = null;
   show('game');
-  await nextFrame();
 
-  const p = getPuzzle(key, n, seed);
+  let cur = store.current[key];
+  if (!cur) {
+    const loadT = setTimeout(() => $('#loading').classList.add('show'), 120);
+    await nextFrame();
+    const puzzle = await getPuzzle();
+    clearTimeout(loadT);
+    if (token !== startToken) return;
+    cur = store.current[key] = { puzzle, cells: null, elapsed: 0, hints: 0, mistakes: 0 };
+    save();
+  }
   $('#loading').classList.remove('show');
+  const p = cur.puzzle;
+  const n = p.n;
   G.key = key; G.n = n; G.regions = p.regions; G.solution = p.solution;
   G.colors = shuffle(ZONE_COLORS.slice(), mulberry32(p.colorSeed));
-  const saved = store.progress[key];
   G.cells = new Uint8Array(n * n);
-  if (saved && saved.cells && saved.cells.length === n * n) saved.cells.forEach((v, i) => (G.cells[i] = v));
-  G.hints = saved?.hints || 0; G.mistakes = saved?.mistakes || 0; G.elapsed = saved?.elapsed || 0;
+  if (cur.cells && cur.cells.length === n * n) cur.cells.forEach((v, i) => (G.cells[i] = v));
+  G.hints = cur.hints || 0; G.mistakes = cur.mistakes || 0; G.elapsed = cur.elapsed || 0;
   G.history = []; G.done = false; G.startedAt = null;
+  $('#game-sub').textContent = `${n}×${n} · ` + sub;
   buildBoard();
   render({ initial: true });
   resumeTimer();
-  // nächstes Level im Leerlauf vorbereiten
-  if (mode === 'level') idle(() => getPuzzle('L' + (level + 1), sizeForLevel(level + 1), levelSeed(level + 1)));
 }
-const idle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 2000 }) : setTimeout(fn, 600));
 
 // ---------- Board ----------
 function buildBoardInto(el, n, regions, colors) {
@@ -398,16 +446,7 @@ function bumpTool(action, cls) {
   b.classList.remove(cls); void b.offsetWidth; b.classList.add(cls);
 }
 
-// ---------- Tipps ----------
-function unitsOf() {
-  const { n, regions } = G;
-  const units = [];
-  for (let r = 0; r < n; r++) units.push({ type: 'Reihe', cells: Array.from({ length: n }, (_, c) => r * n + c) });
-  for (let c = 0; c < n; c++) units.push({ type: 'Spalte', cells: Array.from({ length: n }, (_, r) => r * n + c) });
-  for (let g = 0; g < n; g++) units.push({ type: 'Thermik-Zone', cells: [...regions.keys()].filter((i) => regions[i] === g) });
-  return units;
-}
-
+// ---------- Tipps (über den Logik-Löser) ----------
 let hintBusy = false;
 function clearHighlights() {
   G.cellEls.forEach((el) => el.classList.remove('hint', 'hint-soft'));
@@ -422,7 +461,24 @@ function highlight(cells, soft = []) {
   setTimeout(() => {
     for (const i of soft) els[i]?.classList.remove('hint-soft');
     for (const i of cells) els[i]?.classList.remove('hint');
-  }, 2600);
+  }, 2800);
+}
+
+const UNIT = { row: 'Reihe', col: 'Spalte', zone: 'Zone' };
+const UNITS = { row: 'Reihen', col: 'Spalten', zone: 'Zonen' };
+
+function explain(step) {
+  const u = step.units[0];
+  switch (step.tech) {
+    case 1: return `In dieser ${UNIT[u.kind]} ist nur noch ein Platz frei.`;
+    case 2: return u.kind === 'zone'
+      ? `Diese Zone liegt komplett in einer ${UNIT[step.target.kind]}. Der Rest der ${UNIT[step.target.kind]} ist gesperrt.`
+      : `Diese ${UNIT[u.kind]} hat nur noch Plätze in einer Zone. Der Rest der Zone ist gesperrt.`;
+    case 3: return `Ein Schirm hier würde die markierte ${UNIT[u.kind]} komplett blockieren.`;
+    case 4: return `Diese ${step.k} ${UNITS[step.from]} passen nur in ${step.k} ${UNITS[step.to]}. Dort ist sonst alles gesperrt.`;
+    case 5: return `Probeflug: Mit einem Schirm hier bliebe für die markierte ${UNIT[u.kind]} später kein Platz.`;
+  }
+  return '';
 }
 
 function hint() {
@@ -440,7 +496,7 @@ function hint() {
     highlight([wrongG[0]]);
     toast('Dieser Schirm steht falsch. Ich nehme ihn weg.');
     later(() => setCells([[wrongG[0], 0]], { sound: false }), 900);
-    return finishHint();
+    return saveProgress();
   }
   const wrongX = [...cells.keys()].filter((i) => cells[i] === 1 && isSol(i));
   if (wrongX.length) {
@@ -448,88 +504,35 @@ function hint() {
     highlight([wrongX[0]]);
     toast('Hier hast du ein × gesetzt, aber genau hier gehört ein Schirm hin.');
     later(() => setCells([[wrongX[0], 0]], { sound: false }), 900);
-    return finishHint();
+    return saveProgress();
   }
 
-  const info = analyze();
-  const cand = (i) => cells[i] === 0 && !info.blocked[i];
-  const units = unitsOf();
-  const open = units.filter((u) => !u.cells.some((i) => cells[i] === 2));
-
-  // 2) Nur noch ein Platz
-  for (const u of open) {
-    const cs = u.cells.filter(cand);
-    if (cs.length === 1) {
-      pushHistory();
-      highlight([cs[0]], u.cells);
-      toast(`In dieser ${u.type} ist nur noch ein Platz frei.`, 'good');
-      later(() => setCells([[cs[0], 2]]), 700);
-      return finishHint();
-    }
-  }
-
-  // 3) Eingesperrte Zonen: Zone liegt komplett in einer Reihe/Spalte (oder umgekehrt)
-  const rowOf = (i) => (i / n) | 0, colOf = (i) => i % n;
-  for (const u of open) {
-    const cs = u.cells.filter(cand);
-    if (!cs.length) continue;
-    const checks = [];
-    if (u.type === 'Thermik-Zone') {
-      if (cs.every((i) => rowOf(i) === rowOf(cs[0]))) checks.push(['Reihe', units[rowOf(cs[0])]]);
-      if (cs.every((i) => colOf(i) === colOf(cs[0]))) checks.push(['Spalte', units[n + colOf(cs[0])]]);
-    } else {
-      const rg = G.regions[cs[0]];
-      if (cs.every((i) => G.regions[i] === rg)) checks.push(['Thermik-Zone', units[2 * n + rg]]);
-    }
-    for (const [otherType, other] of checks) {
-      const elim = other.cells.filter((i) => cand(i) && !u.cells.includes(i));
-      if (elim.length) {
-        pushHistory();
-        highlight(elim, cs);
-        const msg = u.type === 'Thermik-Zone'
-          ? `Diese Zone kann nur in einer ${otherType} fliegen, also ist dort sonst nichts frei.`
-          : `Die ${u.type} hat nur noch Plätze in einer Zone, also ist der Rest der Zone gesperrt.`;
-        toast(msg, 'good');
-        later(() => setCells(elim.map((i) => [i, 1])), 700);
-        return finishHint();
-      }
-    }
-  }
-
-  // 4) Ein Schirm hier würde eine andere Einheit komplett blockieren
-  for (let i = 0; i < n * n; i++) {
-    if (!cand(i)) continue;
-    for (const u of open) {
-      if (u.cells.includes(i)) continue;
-      const cs = u.cells.filter(cand);
-      if (cs.length && cs.every((j) => blocks(i, j))) {
-        pushHistory();
-        highlight([i], cs);
-        toast(`Ein Schirm hier würde die markierte ${u.type} komplett blockieren.`, 'good');
-        later(() => setCells([[i, 1]]), 700);
-        return finishHint();
-      }
-    }
-  }
-
-  // 5) Notfall: einen richtigen Schirm verraten
-  for (let r = 0; r < n; r++) {
+  // 2) Nächsten logischen Schritt suchen
+  const st = createLogicState(n, G.regions);
+  for (let i = 0; i < n * n; i++) if (cells[i] === 2) placeIn(st, i);
+  for (let i = 0; i < n * n; i++) if (cells[i] === 1) st.cand[i] = 0;
+  const step = nextLogicStep(st, 5);
+  pushHistory();
+  if (!step) {
+    // Notfall: einen richtigen Schirm verraten
+    const r = [...Array(n).keys()].find((r) => cells[r * n + solution[r]] !== 2);
     const i = r * n + solution[r];
-    if (cells[i] !== 2) {
-      pushHistory();
-      highlight([i]);
-      toast('Kniffliger Flug! Hier fliegt sicher ein Schirm.', 'good');
-      later(() => setCells([[i, 2]]), 700);
-      return finishHint();
-    }
+    highlight([i]);
+    toast('Kniffliger Flug! Hier fliegt sicher ein Schirm.', 'good');
+    later(() => setCells([[i, 2]]), 700);
+    return saveProgress();
   }
+  const soft = [...new Set(step.units.flatMap((u) => u.cells))];
+  toast(explain(step), 'good');
+  if (step.place != null) {
+    highlight([step.place], soft);
+    later(() => setCells([[step.place, 2]]), 750);
+  } else {
+    highlight(step.elim, soft);
+    later(() => setCells(step.elim.map((i) => [i, 1])), 750);
+  }
+  saveProgress();
 }
-function blocks(a, b) {
-  const n = G.n;
-  const ar = (a / n) | 0, ac = a % n, br = (b / n) | 0, bc = b % n;
-  return ar === br || ac === bc || G.regions[a] === G.regions[b] || (Math.abs(ar - br) <= 1 && Math.abs(ac - bc) <= 1);
-}
-function finishHint() { saveProgress(); }
 
 // ---------- Gewinnen ----------
 function checkWin(info) {
@@ -541,18 +544,17 @@ function checkWin(info) {
   const errors = G.hints + G.mistakes;
   const stars = errors === 0 ? 3 : errors <= 2 ? 2 : 1;
   let record = '';
-  if (G.mode === 'level') {
-    const L = G.level;
-    store.stars[L] = Math.max(store.stars[L] || 0, stars);
-    if (!store.best[L] || time < store.best[L]) { if (store.best[L]) record = 'Neue Bestzeit!'; store.best[L] = time; }
-    store.unlocked = Math.max(store.unlocked, L + 1);
-  } else {
-    const prev = store.daily[G.date];
-    store.daily[G.date] = Math.max(prev || 0, stars);
+  const st = statsOf(G.diff);
+  if (G.mode === 'daily') {
+    store.daily[G.date] = Math.max(store.daily[G.date] || 0, stars);
     const s = dailyStreak();
     if (s > 1) record = `${s} Tage in Folge geflogen!`;
+  } else {
+    st.solved++;
+    if (stars === 3) st.perfect++;
+    if (st.best == null || time < st.best) { if (st.best != null) record = 'Neue Bestzeit!'; st.best = time; }
   }
-  delete store.progress[G.key];
+  delete store.current[G.key];
   save();
   celebrate(stars, time, record);
 }
@@ -614,7 +616,8 @@ function showWin(stars, time, record) {
   $('#win-hints').textContent = G.hints;
   $('#win-mistakes').textContent = G.mistakes;
   $('#win-record').textContent = record;
-  $('#win-next').textContent = G.mode === 'level' ? `Level ${G.level + 1}` : 'Weiter mit Level ' + store.unlocked;
+  $('#win-next').textContent = G.mode === 'daily' ? 'Zum Menü' : `Neuer Flug · ${DIFFICULTIES[G.diff].name}`;
+  $('[data-action="win-menu"]').style.display = G.mode === 'daily' ? 'none' : '';
   $$('.win-stars .star').forEach((s) => s.classList.remove('on'));
   openModal('#modal-win');
   [0, 1, 2].forEach((i) => {
@@ -712,43 +715,55 @@ function buildHelpExample() {
 
 // ---------- Buttons ----------
 let helpReturn = 'home';
+let pendingStart = null;
 document.addEventListener('click', (e) => {
-  const lvl = e.target.closest('[data-level]');
-  if (lvl) { sfx.click(); startGame({ mode: 'level', level: Number(lvl.dataset.level) }); return; }
+  const dc = e.target.closest('[data-diff]');
+  if (dc) {
+    sfx.click();
+    const diff = dc.dataset.diff;
+    if (!store.seenHelp) { store.seenHelp = true; save(); pendingStart = { mode: 'free', diff }; helpReturn = 'start'; openHelp(); }
+    else startGame({ mode: 'free', diff });
+    return;
+  }
   const b = e.target.closest('[data-action]');
   if (!b) return;
   unlockAudio();
   const a = b.dataset.action;
   if (!['undo', 'hint', 'reset'].includes(a)) sfx.click();
   switch (a) {
-    case 'continue':
-      if (!store.seenHelp) { store.seenHelp = true; save(); helpReturn = 'start'; openHelp(); }
-      else startGame({ mode: 'level', level: store.unlocked });
-      break;
     case 'daily': startGame({ mode: 'daily' }); break;
-    case 'levels': show('levels'); break;
     case 'home': show('home'); break;
-    case 'back-from-game': show(G.mode === 'level' ? 'levels' : 'home'); break;
+    case 'back-from-game': show('home'); break;
     case 'help': helpReturn = currentScreen; openHelp(); break;
     case 'help-close':
-      if (helpReturn === 'start') { helpReturn = 'home'; startGame({ mode: 'level', level: store.unlocked }); }
-      else show(helpReturn); break;
+      if (helpReturn === 'start' && pendingStart) { helpReturn = 'home'; startGame(pendingStart); pendingStart = null; }
+      else show(helpReturn === 'start' ? 'home' : helpReturn);
+      break;
     case 'settings': syncSettings(); openModal('#modal-settings'); break;
     case 'settings-close': closeModal('#modal-settings'); break;
     case 'reset-progress':
-      if (confirm('Wirklich den ganzen Fortschritt löschen?')) {
-        const s = store.settings; Object.assign(store, defaults(), { settings: s, seenHelp: true }); save();
+      if (confirm('Wirklich Statistik und Spielstände löschen?')) {
+        const s = store.settings, pool = store.pool;
+        Object.assign(store, defaults(), { settings: s, pool, seenHelp: true }); save();
         closeModal('#modal-settings'); renderHome(); toast('Fortschritt gelöscht');
       }
       break;
     case 'undo': undo(); break;
     case 'hint': hint(); break;
-    case 'reset': resetBoard(); break;
+    case 'reset':
+      if (G.done) break;
+      $('#new-puzzle-btn').style.display = G.mode === 'daily' ? 'none' : '';
+      openModal('#modal-new');
+      break;
+    case 'clear-board': closeModal('#modal-new'); resetBoard(); break;
+    case 'new-puzzle': closeModal('#modal-new'); startGame({ mode: 'free', diff: G.diff, fresh: true }); break;
+    case 'new-cancel': closeModal('#modal-new'); break;
     case 'next':
       closeModal('#modal-win');
-      startGame({ mode: 'level', level: G.mode === 'level' ? G.level + 1 : store.unlocked });
+      if (G.mode === 'daily') show('home');
+      else startGame({ mode: 'free', diff: G.diff });
       break;
-    case 'win-menu': closeModal('#modal-win'); show(G.mode === 'level' ? 'levels' : 'home'); break;
+    case 'win-menu': closeModal('#modal-win'); show('home'); break;
   }
 });
 function openHelp() { buildHelpExample(); show('help'); }
@@ -766,18 +781,21 @@ $('#set-autox').addEventListener('change', (e) => { store.settings.autoX = e.tar
 let lastTouch = 0;
 document.addEventListener('touchend', (e) => {
   const now = Date.now();
-  if (now - lastTouch < 350 && !e.target.closest('.levels-scroll, .help-scroll')) e.preventDefault();
+  if (now - lastTouch < 350 && !e.target.closest('.help-scroll')) e.preventDefault();
   lastTouch = now;
 }, { passive: false });
-
-// ---------- Start ----------
-renderHome();
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
-}
 
 // verzögerte Aktion nur ausführen, wenn noch dasselbe Rätsel offen ist
 function later(fn, ms) {
   const k = G.key;
   setTimeout(() => { if (G.key === k && !G.done) fn(); }, ms);
+}
+
+// ---------- Start ----------
+localStorage.removeItem('thermikdoku.v1');
+renderHome();
+// Vorrat für alle Stufen im Hintergrund füllen
+DIFF_KEYS.forEach((d, i) => setTimeout(() => refillPool(d), 400 + i * 300));
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
 }

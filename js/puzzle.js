@@ -154,15 +154,214 @@ export function generatePuzzle(n, seed) {
   throw new Error('Kein Puzzle gefunden');
 }
 
-export function sizeForLevel(level) {
-  if (level <= 8) return 5;
-  if (level <= 25) return 6;
-  if (level <= 50) return 7;
-  if (level <= 90) return 8;
-  if (level <= 140) return 9;
-  return 10;
+// =====================================================================
+// Logik-Löser: löst wie ein Mensch, Schritt für Schritt, ohne Raten.
+// Techniken (aufsteigend schwer):
+//  1 single   – eine Reihe/Spalte/Zone hat nur noch einen freien Platz
+//  2 confine  – Zone liegt ganz in einer Reihe/Spalte (oder umgekehrt)
+//  3 block    – ein Schirm hier würde eine andere Einheit komplett blockieren
+//  4 subset   – k Zonen passen nur in k Reihen/Spalten (oder umgekehrt)
+//  5 probe    – Probeflug: ein Schirm hier führt zwangsläufig zum Widerspruch
+// =====================================================================
+
+export const TECH_NAMES = ['', 'Einzelplatz', 'Eingesperrt', 'Blockade', 'Gruppen', 'Probeflug'];
+
+function buildUnits(n, regions) {
+  const units = [];
+  for (let r = 0; r < n; r++) units.push({ kind: 'row', idx: r, cells: Array.from({ length: n }, (_, c) => r * n + c) });
+  for (let c = 0; c < n; c++) units.push({ kind: 'col', idx: c, cells: Array.from({ length: n }, (_, r) => r * n + c) });
+  for (let g = 0; g < n; g++) {
+    const cells = [];
+    for (let i = 0; i < n * n; i++) if (regions[i] === g) cells.push(i);
+    units.push({ kind: 'zone', idx: g, cells });
+  }
+  return units;
 }
 
-export function levelSeed(level) {
-  return (level * 7919 + 104729) >>> 0;
+export function createLogicState(n, regions) {
+  return {
+    n, regions,
+    units: buildUnits(n, regions),
+    cand: new Uint8Array(n * n).fill(1),
+    placed: new Uint8Array(n * n),
+    count: 0,
+  };
+}
+
+function cloneState(st) {
+  return { ...st, cand: st.cand.slice(), placed: st.placed.slice() };
+}
+
+export function conflicts(n, regions, a, b) {
+  const ar = (a / n) | 0, ac = a % n, br = (b / n) | 0, bc = b % n;
+  return ar === br || ac === bc || regions[a] === regions[b] || (Math.abs(ar - br) <= 1 && Math.abs(ac - bc) <= 1);
+}
+
+export function placeIn(st, i) {
+  const { n, regions } = st;
+  st.placed[i] = 1; st.count++;
+  for (let j = 0; j < n * n; j++) if (st.cand[j] && conflicts(n, regions, i, j)) st.cand[j] = 0;
+  st.cand[i] = 0;
+}
+
+function unitOpen(st, u) { return !u.cells.some((i) => st.placed[i]); }
+function unitCands(st, u) { return u.cells.filter((i) => st.cand[i]); }
+function unitOf(st, kind, idx) {
+  const n = st.n;
+  return st.units[(kind === 'row' ? 0 : kind === 'col' ? n : 2 * n) + idx];
+}
+const keyOf = (n, kind, i) => (kind === 'row' ? (i / n) | 0 : kind === 'col' ? i % n : null);
+
+function contradiction(st) {
+  for (const u of st.units) if (unitOpen(st, u) && unitCands(st, u).length === 0) return u;
+  return null;
+}
+
+function* combos(arr, k, start = 0, acc = []) {
+  if (acc.length === k) { yield acc.slice(); return; }
+  for (let i = start; i < arr.length; i++) { acc.push(arr[i]); yield* combos(arr, k, i + 1, acc); acc.pop(); }
+}
+
+export function nextLogicStep(st, maxTech = 5) {
+  const { n, regions } = st;
+  const open = st.units.filter((u) => unitOpen(st, u));
+
+  // 1 – Einzelplatz
+  for (const u of open) {
+    const cs = unitCands(st, u);
+    if (cs.length === 1) return { tech: 1, place: cs[0], units: [u] };
+  }
+  if (maxTech < 2) return null;
+
+  // 2 – Eingesperrt
+  for (const u of open) {
+    const cs = unitCands(st, u);
+    if (!cs.length) continue;
+    const targets = [];
+    if (u.kind === 'zone') {
+      for (const kind of ['row', 'col']) {
+        const k0 = keyOf(n, kind, cs[0]);
+        if (cs.every((i) => keyOf(n, kind, i) === k0)) targets.push(unitOf(st, kind, k0));
+      }
+    } else {
+      const g = regions[cs[0]];
+      if (cs.every((i) => regions[i] === g)) targets.push(unitOf(st, 'zone', g));
+    }
+    for (const t of targets) {
+      const elim = t.cells.filter((i) => st.cand[i] && !u.cells.includes(i));
+      if (elim.length) return { tech: 2, elim, units: [u], target: t };
+    }
+  }
+  if (maxTech < 3) return null;
+
+  // 3 – Blockade
+  for (let c = 0; c < n * n; c++) {
+    if (!st.cand[c]) continue;
+    for (const u of open) {
+      if (u.cells.includes(c)) continue;
+      const cs = unitCands(st, u);
+      if (cs.length && cs.every((j) => conflicts(n, regions, c, j))) return { tech: 3, elim: [c], units: [u] };
+    }
+  }
+  if (maxTech < 4) return null;
+
+  // 4 – Gruppen (k Einheiten passen nur in k andere Einheiten)
+  const pairs = [['zone', 'row'], ['zone', 'col'], ['row', 'zone'], ['col', 'zone'], ['row', 'col'], ['col', 'row']];
+  const maxK = Math.min(4, n - 2);
+  for (let k = 2; k <= maxK; k++) {
+    for (const [from, to] of pairs) {
+      const srcs = open.filter((u) => u.kind === from);
+      if (srcs.length <= k) continue;
+      for (const group of combos(srcs, k)) {
+        const keys = new Set();
+        let ok = true;
+        for (const u of group) {
+          for (const i of unitCands(st, u)) {
+            keys.add(to === 'zone' ? regions[i] : keyOf(n, to, i));
+            if (keys.size > k) { ok = false; break; }
+          }
+          if (!ok) break;
+        }
+        if (!ok || keys.size !== k) continue;
+        const inGroup = new Set(group.flatMap((u) => u.cells));
+        const elim = [];
+        for (const key of keys) {
+          for (const i of unitOf(st, to, key).cells) if (st.cand[i] && !inGroup.has(i)) elim.push(i);
+        }
+        if (elim.length) return { tech: 4, elim, units: group, k, from, to };
+      }
+    }
+  }
+  if (maxTech < 5) return null;
+
+  // 5 – Probeflug
+  for (let c = 0; c < n * n; c++) {
+    if (!st.cand[c]) continue;
+    const t = cloneState(st);
+    placeIn(t, c);
+    let bad = contradiction(t);
+    let guard = 0;
+    while (!bad && t.count < n && guard++ < 4 * n * n) {
+      const s = nextLogicStep(t, 3);
+      if (!s) break;
+      applyStep(t, s);
+      bad = contradiction(t);
+    }
+    if (bad) return { tech: 5, elim: [c], units: [bad] };
+  }
+  return null;
+}
+
+export function applyStep(st, step) {
+  if (step.place != null) placeIn(st, step.place);
+  else for (const i of step.elim) st.cand[i] = 0;
+}
+
+// Bewertet ein Rätsel: welche Techniken sind nötig?
+export function gradePuzzle(n, regions) {
+  const st = createLogicState(n, regions);
+  const counts = [0, 0, 0, 0, 0, 0];
+  let maxTech = 0, steps = 0;
+  while (st.count < n) {
+    if (contradiction(st)) return { ok: false };
+    const s = nextLogicStep(st, 5);
+    if (!s) return { ok: false };
+    applyStep(st, s);
+    counts[s.tech]++;
+    maxTech = Math.max(maxTech, s.tech);
+    if (++steps > 1000) return { ok: false };
+  }
+  // Punktzahl für Feinabstimmung
+  const score = counts[2] * 1 + counts[3] * 3 + counts[4] * 8 + counts[5] * 15;
+  return { ok: true, maxTech, counts, score };
+}
+
+// =====================================================================
+// Schwierigkeitsstufen
+// =====================================================================
+export const DIFFICULTIES = {
+  leicht:  { name: 'Leicht',  place: 'Übungshang', sizes: [5, 6],  minTech: 1, maxTech: 2, icons: 1 },
+  mittel:  { name: 'Mittel',  place: 'Hausberg',   sizes: [6, 7],  minTech: 3, maxTech: 3, icons: 2 },
+  schwer:  { name: 'Schwer',  place: 'Alpenpass',  sizes: [8],     minTech: 4, maxTech: 5, icons: 3 },
+  experte: { name: 'Experte', place: 'Himalaya',   sizes: [9, 10], minTech: 4, maxTech: 5, minScore: 30, icons: 4 },
+};
+
+// Erzeugt ein eindeutiges, rein logisch lösbares Rätsel der gewünschten Schwierigkeit.
+export function generateForDifficulty(diffKey, seed) {
+  const d = DIFFICULTIES[diffKey];
+  const rng = mulberry32(seed);
+  let fallback = null;
+  for (let attempt = 0; attempt < 400; attempt++) {
+    const n = d.sizes[Math.floor(rng() * d.sizes.length)];
+    const p = generatePuzzle(n, Math.floor(rng() * 2 ** 31));
+    const g = gradePuzzle(n, p.regions);
+    if (!g.ok) continue; // braucht Raten -> verwerfen
+    const fits = g.maxTech >= d.minTech && g.maxTech <= d.maxTech && (!d.minScore || g.score >= d.minScore);
+    const out = { ...p, regions: Array.from(p.regions), difficulty: diffKey, grade: g };
+    if (fits) return out;
+    // nächstbeste Lösung merken (falls die Suche zu lange dauert)
+    const dist = g.maxTech < d.minTech ? d.minTech - g.maxTech : g.maxTech > d.maxTech ? g.maxTech - d.maxTech : 0.5;
+    if (!fallback || dist < fallback.dist) fallback = { dist, out };
+  }
+  return fallback.out;
 }
