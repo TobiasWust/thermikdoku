@@ -704,6 +704,12 @@ img { -webkit-user-drag: none; user-select: none; }
 .toast.show { transform: translate(-50%, 0) scale(1); opacity: 1; }
 .toast.bad { background: #ffe1e6; }
 .toast.good { background: #dff8ea; }
+.toast.sticky { pointer-events: auto; cursor: pointer; padding-right: 38px; }
+.toast-close {
+  position: absolute; top: 50%; right: 10px; transform: translateY(-50%);
+  width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%;
+  border: 2px solid var(--ink); background: #fff; font-size: 15px; line-height: 1; font-weight: 900;
+}
 
 /* ---------- Effekte ---------- */
 .fx { position: fixed; inset: 0; pointer-events: none; z-index: 25; overflow: hidden; }

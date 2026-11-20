@@ -1,5 +1,5 @@
 // Offline-Cache für Thermikdoku
-const CACHE = 'thermikdoku-v17';
+const CACHE = 'thermikdoku-v18';
 const ASSETS = [
   './', 'index.html', 'css/style.css', 'js/app.js', 'js/puzzle.js', 'js/audio.js', 'js/worker.js',
   'manifest.webmanifest', 'icons/icon-64.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png',

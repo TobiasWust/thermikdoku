@@ -185,6 +185,7 @@ async function takePuzzle(d) {
 let currentScreen = 'home';
 function show(name) {
   $$('.screen').forEach((s) => s.classList.toggle('active', s.id === `screen-${name}`));
+  if (name !== 'game') hideToast();
   currentScreen = name;
   if (name === 'home') renderHome();
   if (name !== 'game') pauseTimer(); else resumeTimer();
@@ -299,6 +300,7 @@ function saveProgress() {
 let startToken = 0;
 async function startGame({ mode, diff, fresh = false }) {
   unlockAudio();
+  hideToast();
   pauseTimer();
   const token = ++startToken;
   let key, title, sub, getPuzzle;
@@ -727,11 +729,7 @@ function highlight(cells, soft = []) {
   setTimeout(() => (hintBusy = false), 950);
   for (const i of soft) G.cellEls[i].classList.add('hint-soft');
   for (const i of cells) G.cellEls[i].classList.add('hint');
-  const els = G.cellEls;
-  setTimeout(() => {
-    for (const i of soft) els[i]?.classList.remove('hint-soft');
-    for (const i of cells) els[i]?.classList.remove('hint');
-  }, 2800);
+  // die Markierung bleibt, bis man den Tipp wegdrückt
 }
 
 const UNIT = { row: 'Reihe', col: 'Spalte', zone: 'Zone' };
@@ -764,7 +762,7 @@ function hint() {
   if (wrongG.length) {
     pushHistory();
     highlight([wrongG[0]]);
-    toast('Dieser Schirm steht falsch. Ich nehme ihn weg.');
+    toast('Dieser Schirm steht falsch. Ich nehme ihn weg.', '', { sticky: true });
     later(() => setCells([[wrongG[0], 0]], { sound: false }), 900);
     return saveProgress();
   }
@@ -772,7 +770,7 @@ function hint() {
   if (wrongX.length) {
     pushHistory();
     highlight([wrongX[0]]);
-    toast('Hier hast du ein × gesetzt, aber genau hier gehört ein Schirm hin.');
+    toast('Hier hast du ein × gesetzt, aber genau hier gehört ein Schirm hin.', '', { sticky: true });
     later(() => setCells([[wrongX[0], 0]], { sound: false }), 900);
     return saveProgress();
   }
@@ -788,12 +786,12 @@ function hint() {
     const r = [...Array(n).keys()].find((r) => cells[r * n + solution[r]] !== 2);
     const i = r * n + solution[r];
     highlight([i]);
-    toast('Kniffliger Flug! Hier fliegt sicher ein Schirm.', 'good');
+    toast('Kniffliger Flug! Hier fliegt sicher ein Schirm.', 'good', { sticky: true });
     later(() => setCells([[i, 2]], { hint: true }), 700);
     return saveProgress();
   }
   const soft = [...new Set(step.units.flatMap((u) => u.cells))];
-  toast(explain(step), 'good');
+  toast(explain(step), 'good', { sticky: true });
   if (step.place != null) {
     highlight([step.place], soft);
     later(() => setCells([[step.place, 2]], { hint: true }), 750);
@@ -810,6 +808,7 @@ function checkWin(info) {
   if (info.gl.length !== G.n || info.conflict.size) return;
   G.done = true;
   pauseTimer();
+  hideToast();
   if (G.mode === 'zeitflug') return zeitflugSolved();
   breakCombo();
   const time = Math.floor(G.elapsed);
@@ -1064,15 +1063,26 @@ function openModal(sel) { const m = $(sel); m.classList.add('show'); m.setAttrib
 function closeModal(sel) { const m = $(sel); m.classList.remove('show'); m.setAttribute('aria-hidden', 'true'); }
 
 let toastT = null;
-function toast(msg, kind = '') {
+// sticky: bleibt stehen, bis man draufdrückt (für Tipps)
+function toast(msg, kind = '', { sticky = false } = {}) {
   const t = $('#toast');
+  if (t.classList.contains('sticky') && !sticky) clearHighlights(); // Tipp wird verdrängt
   t.textContent = msg;
-  t.className = 'toast ' + kind;
+  if (sticky) t.insertAdjacentHTML('beforeend', '<span class="toast-close" aria-hidden="true">×</span>');
+  t.className = 'toast ' + kind + (sticky ? ' sticky' : '');
+  t.setAttribute('role', sticky ? 'button' : 'status');
   void t.offsetWidth;
   t.classList.add('show');
   clearTimeout(toastT);
-  toastT = setTimeout(() => t.classList.remove('show'), 2600);
+  if (!sticky) toastT = setTimeout(() => t.classList.remove('show'), 2600);
 }
+function hideToast() {
+  clearTimeout(toastT);
+  const t = $('#toast');
+  if (t.classList.contains('sticky')) clearHighlights();
+  t.classList.remove('show', 'sticky');
+}
+$('#toast').addEventListener('click', () => { if ($('#toast').classList.contains('sticky')) hideToast(); });
 
 // ---------- Eingabe auf dem Brett ----------
 (function setupBoardInput() {
