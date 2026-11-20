@@ -27,7 +27,7 @@ Auf dem Handy lässt sich Thermikdoku über „Zum Home-Bildschirm“ wie eine A
 - **Tagesflug** mit Serienzähler
 - **Combos, Flugmeilen und Pilotenränge**
 - **Kawaii-Grafiken**, Animationen und Sounds
-- **Datenschutzfreundlich:** keine Konten, keine Cookies, kein Tracking; der Spielstand bleibt im Browser
+- **Datenschutzfreundlich:** keine Konten, keine Cookies, nur eine anonyme Besucherzählung; der Spielstand bleibt im Browser
 
 ## Lokal starten
 

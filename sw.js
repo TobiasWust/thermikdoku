@@ -1,5 +1,5 @@
 // Offline-Cache für Thermikdoku
-const CACHE = 'thermikdoku-v9';
+const CACHE = 'thermikdoku-v10';
 const ASSETS = [
   './', 'index.html', 'css/style.css', 'js/app.js', 'js/puzzle.js', 'js/audio.js', 'js/worker.js',
   'manifest.webmanifest', 'icons/icon-64.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png',
@@ -22,6 +22,7 @@ self.addEventListener('activate', (e) => {
 // Netzwerk zuerst (damit Updates ankommen), sonst Cache
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  if (new URL(e.request.url).origin !== self.location.origin) return; // z. B. GoatCounter
   e.respondWith(
     fetch(e.request, { cache: 'no-cache' })
       .then((res) => {

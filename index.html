@@ -228,7 +228,11 @@
       </section>
       <section>
         <h3>2. Überblick</h3>
-        <p>Thermikdoku ist ein Rätselspiel, das komplett in deinem Browser läuft. Es gibt <strong>keine Konten, keine Cookies, keine Werbung und kein Tracking</strong>. Einziger externer Dienst ist das Hosting bei <strong>Netlify</strong> (Abschnitt 4).</p>
+        <p>Thermikdoku ist ein Rätselspiel, das komplett in deinem Browser läuft. Es gibt <strong>keine Konten, keine Cookies, keine Werbung und kein Tracking</strong>. Beteiligt sind nur zwei externe Dienste:</p>
+        <ul>
+          <li><strong>Netlify</strong> stellt die Dateien des Spiels bereit (Abschnitt 4).</li>
+          <li><strong>GoatCounter</strong> zählt Aufrufe anonym und ohne Cookies (Abschnitt 5).</li>
+        </ul>
         <p>Der Link „Kaffee spendieren“ führt zu <strong>Ko-fi</strong> (ko-fi.com). Es wird nichts von Ko-fi in diese Seite geladen. Daten verarbeitet Ko-fi erst, wenn du den Link öffnest. Dann gilt die Datenschutzerklärung von Ko-fi.</p>
       </section>
       <section>
@@ -247,19 +251,24 @@
         <p>Netlify ist unser Auftragsverarbeiter auf Grundlage eines Auftragsverarbeitungsvertrags. Soweit Daten außerhalb der EU/des EWR verarbeitet werden, ist dies durch Standardvertragsklauseln abgesichert.</p>
       </section>
       <section>
-        <h3>5. Speicherdauer</h3>
+        <h3>5. Anonyme Besucherzählung (GoatCounter)</h3>
+        <p>Um ungefähr zu wissen, wie viele Menschen Thermikdoku spielen, werden Aufrufe mit GoatCounter (goatcounter.com) gezählt. GoatCounter setzt keine Cookies und speichert keine personenbezogenen Daten: Erfasst werden die aufgerufene Seite, die verweisende Seite, Browser, Bildschirmgröße und das Land, das aus der Anfrage abgeleitet wird. Die IP-Adresse wird nicht gespeichert. Spielstände und Eingaben werden nie übertragen.</p>
+        <p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO – unser berechtigtes Interesse daran, in zusammengefasster Form zu verstehen, wie viel das Spiel genutzt wird.</p>
+      </section>
+      <section>
+        <h3>6. Speicherdauer</h3>
         <ul>
           <li>Daten auf deinem Gerät bleiben dort, bis du sie löschst.</li>
           <li>Server-Logs werden von Netlify nur so lange gespeichert, wie es technisch nötig ist.</li>
         </ul>
       </section>
       <section>
-        <h3>6. Deine Rechte</h3>
+        <h3>7. Deine Rechte</h3>
         <p>Nach der DSGVO hast du das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch gegen Verarbeitungen auf Grundlage berechtigter Interessen (Art. 21).</p>
         <p>Wende dich dafür an <a href="mailto:kontakt@tobiaswust.de">kontakt@tobiaswust.de</a>. Außerdem hast du das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu beschweren.</p>
       </section>
       <section>
-        <h3>7. Änderungen</h3>
+        <h3>8. Änderungen</h3>
         <p>Wir passen diese Erklärung an, wenn sich das Spiel oder die rechtlichen Anforderungen ändern. Es gilt die jeweils aktuelle Fassung.</p>
       </section>
     </div>
@@ -295,5 +304,7 @@
 <div class="fx" id="fx" aria-hidden="true"></div>
 
 <script type="module" src="js/app.js"></script>
+<script data-goatcounter="https://thermikdoku.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
