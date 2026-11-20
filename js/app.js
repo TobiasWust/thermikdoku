@@ -576,11 +576,26 @@ function ripple(i) {
   }
 }
 
-function cycleCell(i) {
+// Einfach tippen: × setzen oder entfernen (ein Schirm wird entfernt).
+// Schnell doppelt tippen: Schirm setzen, egal was vorher dort war.
+const DOUBLE_TAP_MS = 320;
+let lastTap = { i: -1, t: 0, before: 0 };
+function tapCell(i) {
   if (G.done) return;
+  const now = performance.now();
+  if (lastTap.i === i && now - lastTap.t < DOUBLE_TAP_MS) {
+    // Wirkung des ersten Tipps zurücknehmen und stattdessen einen Schirm setzen
+    const before = lastTap.before;
+    lastTap = { i: -1, t: 0, before: 0 };
+    G.cells[i] = before;
+    if (before === 2) { G.history.pop(); render(); saveProgress(); } // nichts geändert -> kein Rückgängig-Schritt
+    else setCells([[i, 2]]);
+    return;
+  }
   pushHistory();
   const v = G.cells[i];
-  setCells([[i, v === 0 ? 1 : v === 1 ? 2 : 0]]);
+  lastTap = { i, t: now, before: v };
+  setCells([[i, v === 1 ? 0 : v === 2 ? 0 : 1]]);
 }
 
 function undo() {
@@ -928,7 +943,7 @@ function toast(msg, kind = '') {
     if (!drag || e.pointerId !== drag.id) return;
     clearTimeout(drag.timer);
     G.cellEls[drag.start]?.classList.remove('press');
-    if (!drag.moved && !drag.long && e.type === 'pointerup') cycleCell(drag.start);
+    if (!drag.moved && !drag.long && e.type === 'pointerup') tapCell(drag.start);
     drag = null;
   };
   board.addEventListener('pointerup', end);

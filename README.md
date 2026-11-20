@@ -15,9 +15,9 @@ Auf dem Handy lässt sich Thermikdoku über „Zum Home-Bildschirm“ wie eine A
 
 | Geste | Wirkung |
 |---|---|
-| Tippen | leer → × → Schirm → leer |
+| Tippen | × setzen oder entfernen (auf einem Schirm: Schirm entfernen) |
+| Doppeltippen | Schirm setzen |
 | Wischen | viele × auf einmal setzen |
-| Lange drücken | Schirm direkt setzen |
 
 ## Features
 
