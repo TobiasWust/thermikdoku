@@ -185,6 +185,7 @@
 
   "settings.title": "Settings",
   "settings.sound": "Sound",
+  "settings.music": "Music",
   "settings.vibe": "Vibration",
   "settings.cb": "Colorblind mode",
   "settings.cbDesc": "Zones also get symbols",

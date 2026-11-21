@@ -1,5 +1,5 @@
 import { generateForDifficulty, DIFFICULTIES, mulberry32, shuffle, createLogicState, placeIn, nextLogicStep } from './puzzle.js';
-import { sfx, setSoundEnabled, unlockAudio } from './audio.js';
+import { sfx, setSoundEnabled, setMusicEnabled, setMusic, unlockAudio } from './audio.js';
 import { t, tp, translate, setLang, onLang, pickLang, getLang, fmtNum, fmtList, LANGS } from './i18n.js';
 import { legalHtml } from './legal.js';
 
@@ -105,7 +105,7 @@ const STORE_KEY = 'thermikdoku.v2';
 const HAD_SAVE = (() => { try { return localStorage.getItem(STORE_KEY) != null || localStorage.getItem('thermikdoku.v1') != null; } catch { return false; } })();
 function defaults() {
   return {
-    settings: { sound: true, vibe: true, autoX: false, colorblind: false },
+    settings: { sound: true, music: true, vibe: true, autoX: false, colorblind: false },
     seenHelp: false,
     stats: {},      // diff -> { solved, best, perfect }
     current: {},    // key -> { puzzle, cells, elapsed, hints, mistakes }
@@ -127,6 +127,7 @@ delete store.daily;
 for (const k of Object.keys(store.current)) if (k.startsWith('D')) delete store.current[k];
 function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch {} }
 setSoundEnabled(store.settings.sound);
+setMusicEnabled(store.settings.music);
 
 // ---------- Sprache ----------
 // Die Wahl liegt in store.settings.lang. Bestehende Spieler ohne gespeicherte Sprache bleiben bei Deutsch,
@@ -204,6 +205,7 @@ function show(name) {
   $$('.screen').forEach((s) => s.classList.toggle('active', s.id === `screen-${name}`));
   if (name !== 'game') hideToast();
   currentScreen = name;
+  setMusic(name === 'game' ? 'play' : 'menu');
   if (name === 'home') renderHome();
   if (name !== 'game') pauseTimer(); else resumeTimer();
 }
@@ -1248,11 +1250,13 @@ function openHelp() { buildHelpExample(); show('help'); }
 
 function syncSettings() {
   $('#set-sound').checked = store.settings.sound;
+  $('#set-music').checked = store.settings.music;
   $('#set-vibe').checked = store.settings.vibe;
   $('#set-autox').checked = store.settings.autoX;
   $('#set-cb').checked = store.settings.colorblind;
 }
 $('#set-sound').addEventListener('change', (e) => { store.settings.sound = e.target.checked; setSoundEnabled(e.target.checked); save(); if (e.target.checked) sfx.place(); });
+$('#set-music').addEventListener('change', (e) => { store.settings.music = e.target.checked; setMusicEnabled(e.target.checked); save(); unlockAudio(); });
 $('#set-vibe').addEventListener('change', (e) => { store.settings.vibe = e.target.checked; save(); vibe(30); });
 $('#set-cb').addEventListener('change', (e) => { store.settings.colorblind = e.target.checked; save(); applyColorblind(); });
 function applyColorblind() { document.body.classList.toggle('colorblind', !!store.settings.colorblind); }
