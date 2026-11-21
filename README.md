@@ -31,6 +31,7 @@ Auf dem Handy lässt sich Thermikdoku über „Zum Home-Bildschirm“ wie eine A
 - **Himmel nach Tageszeit:** Morgenrot, Tag, Abendrot und Sternennacht passend zur echten Uhrzeit
 - **Combos, Punkte und Pilotenränge**
 - **Kawaii-Grafiken**, Animationen und Sounds
+- **Deutsch und Englisch:** umschaltbar in den Einstellungen; neue Spieler bekommen die Sprache ihres Browsers, bestehende Spielstände bleiben auf Deutsch
 - **Datenschutzfreundlich:** keine Konten, keine Cookies, nur eine anonyme Besucherzählung; der Spielstand bleibt im Browser
 
 ## Lokal starten
@@ -51,6 +52,9 @@ Dann http://localhost:8765 öffnen.
 | `js/worker.js` | Erzeugt Rätsel im Hintergrund |
 | `js/app.js` | Spiel, Oberfläche, Tipps und Belohnungen |
 | `js/audio.js` | Sounds per WebAudio |
+| `js/i18n.js`, `i18n/*.json` | Übersetzungen (Format wie im Kit: flache Schlüssel, `{platzhalter}`, `data-i18n`) |
+| `js/legal.js` | Datenschutz und Impressum auf Deutsch und Englisch |
+| `scripts/check-i18n.mjs` | Prüft, dass `de.json` und `en.json` dieselben Schlüssel haben und alle benutzten Schlüssel existieren |
 | `css/style.css` | Stil und Animationen |
 | `assets/` | Grafiken (Originale in `assets/src/`) |
 | `sw.js`, `manifest.webmanifest` | Offline-Modus und Installation |

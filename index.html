@@ -88,40 +88,40 @@
   <!-- Start -->
   <section id="screen-home" class="screen active">
     <div class="home-top">
-      <button class="icon-btn" data-action="help" aria-label="Anleitung"><svg><use href="#i-help"/></svg></button>
-      <button class="rank" data-action="rank" aria-label="Pilotenrang">
+      <button class="icon-btn" data-action="help" data-i18n-aria="home.help" aria-label="Anleitung"><svg><use href="#i-help"/></svg></button>
+      <button class="rank" data-action="rank" data-i18n-aria="home.rank" aria-label="Pilotenrang">
         <span class="rank-lvl" id="rank-lvl">1</span>
         <span class="rank-info"><span class="rank-name" id="rank-name">Flugschüler</span><span class="xp-bar"><i id="rank-fill"></i></span></span>
       </button>
-      <button class="icon-btn" data-action="settings" aria-label="Einstellungen"><svg><use href="#i-gear"/></svg></button>
+      <button class="icon-btn" data-action="settings" data-i18n-aria="home.settings" aria-label="Einstellungen"><svg><use href="#i-gear"/></svg></button>
     </div>
     <div class="home-hero">
       <div class="logo-glider" id="logo"><img src="assets/glider-1.webp" alt="Gleitschirmflieger"></div>
       <h1 class="title" id="title" aria-label="Thermikdoku"></h1>
-      <p class="subtitle">Ein Schirm pro Reihe, Spalte und Zone.<br>Nicht zusammenstoßen!</p>
+      <p class="subtitle" data-i18n-html="home.subtitle">Ein Schirm pro Reihe, Spalte und Zone.<br>Nicht zusammenstoßen!</p>
     </div>
     <div class="home-play">
-      <h3 class="home-label">Wähle deinen Flug</h3>
+      <h3 class="home-label" data-i18n="home.choose">Wähle deinen Flug</h3>
       <div class="diff-grid" id="diff-grid"></div>
       <div class="mode-row" id="mode-row" hidden>
         <button class="btn btn-time" data-action="zeitflug" hidden>
           <svg class="btn-ico"><use href="#i-clock"/></svg>
-          <span><span class="btn-big">Zeitflug</span><span class="btn-small" id="zeitflug-label">5 Minuten</span></span>
+          <span><span class="btn-big" data-i18n="zeitflug.name">Zeitflug</span><span class="btn-small" id="zeitflug-label">5 Minuten</span></span>
         </button>
       </div>
       <div class="mods" id="mods" hidden>
-        <span class="mods-label">Extras für deine Flüge</span>
+        <span class="mods-label" data-i18n="home.extras">Extras für deine Flüge</span>
         <div class="mods-list" id="mods-list"></div>
       </div>
     </div>
     <footer class="app-footer">
-      <p>Made with <span class="heart">❤️</span> by <a href="https://wust.dev/" target="_blank" rel="noopener noreferrer">Wust</a><span class="install-link" hidden> · <button type="button" data-action="install">📲 Als App installieren</button></span></p>
+      <p>Made with <span class="heart">❤️</span> by <a href="https://wust.dev/" target="_blank" rel="noopener noreferrer">Wust</a><span class="install-link" hidden> · <button type="button" data-action="install" data-i18n="footer.install">📲 Als App installieren</button></span></p>
       <p class="app-footer-legal">
-        <button type="button" data-action="privacy">Datenschutz</button>
+        <button type="button" data-action="privacy" data-i18n="legal.privacy">Datenschutz</button>
         <span aria-hidden="true">·</span>
-        <button type="button" data-action="imprint">Impressum</button>
+        <button type="button" data-action="imprint" data-i18n="legal.imprint">Impressum</button>
         <span aria-hidden="true">·</span>
-        <a href="https://ko-fi.com/tobiaswust" target="_blank" rel="noopener noreferrer">☕ Kaffee spendieren</a>
+        <a href="https://ko-fi.com/tobiaswust" target="_blank" rel="noopener noreferrer" data-i18n="footer.coffee">☕ Kaffee spendieren</a>
       </p>
     </footer>
   </section>
@@ -129,51 +129,51 @@
   <!-- Spiel -->
   <section id="screen-game" class="screen">
     <header class="topbar">
-      <button class="icon-btn" data-action="back-from-game" aria-label="Zurück"><svg><use href="#i-back"/></svg></button>
+      <button class="icon-btn" data-action="back-from-game" data-i18n-aria="common.back" aria-label="Zurück"><svg><use href="#i-back"/></svg></button>
       <div class="game-title">
         <h2 id="game-title">Leicht</h2>
         <small id="game-sub">5×5</small>
       </div>
       <div class="timer" id="timer">0:00</div>
     </header>
-    <div class="rule-chips" aria-label="Regeln">
-      <div class="chip" data-rule="zone"><span><b>1</b> Schirm pro Farbzone</span></div>
-      <div class="chip" data-rule="line"><span><b>1</b> Schirm pro Reihe und Spalte</span></div>
-      <div class="chip" data-rule="touch"><span>Nicht berühren, auch nicht schräg</span></div>
+    <div class="rule-chips" data-i18n-aria="game.rules" aria-label="Regeln">
+      <div class="chip" data-rule="zone"><span data-i18n-html="rules.zone"><b>1</b> Schirm pro Farbzone</span></div>
+      <div class="chip" data-rule="line"><span data-i18n-html="rules.line"><b>1</b> Schirm pro Reihe und Spalte</span></div>
+      <div class="chip" data-rule="touch"><span data-i18n-html="rules.touch">Nicht berühren, auch nicht schräg</span></div>
     </div>
     <div class="progress" id="progress"></div>
     <div class="board-wrap">
       <div class="combo" id="combo"></div>
       <div class="board" id="board"></div>
-      <div class="loading" id="loading"><img src="assets/glider-1.webp" alt=""><span>Suche Thermik …</span></div>
+      <div class="loading" id="loading"><img src="assets/glider-1.webp" alt=""><span data-i18n="game.loading">Suche Thermik …</span></div>
     </div>
     <nav class="tools">
-      <button class="tool" data-action="undo"><svg><use href="#i-undo"/></svg><span>Zurück</span></button>
-      <button class="tool tool-hint" data-action="hint"><svg><use href="#i-bulb"/></svg><span>Tipp</span></button>
-      <button class="tool" data-action="reset"><svg><use href="#i-reset"/></svg><span>Neu</span></button>
+      <button class="tool" data-action="undo"><svg><use href="#i-undo"/></svg><span data-i18n="tools.undo">Zurück</span></button>
+      <button class="tool tool-hint" data-action="hint"><svg><use href="#i-bulb"/></svg><span data-i18n="tools.hint">Tipp</span></button>
+      <button class="tool" data-action="reset"><svg><use href="#i-reset"/></svg><span data-i18n="tools.reset">Neu</span></button>
     </nav>
   </section>
 
   <!-- Anleitung -->
   <section id="screen-help" class="screen">
     <header class="topbar">
-      <button class="icon-btn" data-action="help-close" aria-label="Zurück"><svg><use href="#i-back"/></svg></button>
-      <h2>Flugregeln</h2>
+      <button class="icon-btn" data-action="help-close" data-i18n-aria="common.back" aria-label="Zurück"><svg><use href="#i-back"/></svg></button>
+      <h2 data-i18n="help.title">Flugregeln</h2>
       <div class="spacer"></div>
     </header>
     <div class="help-scroll">
       <div class="help-example"><div class="board mini" id="help-board"></div></div>
       <div class="rule-chips help-chips">
-        <div class="chip"><span><b>1</b> Schirm pro Farbzone</span></div>
-        <div class="chip"><span><b>1</b> Schirm pro Reihe und Spalte</span></div>
-        <div class="chip"><span>Nicht berühren, auch nicht schräg</span></div>
+        <div class="chip"><span data-i18n-html="rules.zone"><b>1</b> Schirm pro Farbzone</span></div>
+        <div class="chip"><span data-i18n-html="rules.line"><b>1</b> Schirm pro Reihe und Spalte</span></div>
+        <div class="chip"><span data-i18n-html="rules.touch">Nicht berühren, auch nicht schräg</span></div>
       </div>
       <div class="controls-card">
-        <div class="ctl"><span class="ctl-ico"><svg class="x"><use href="#i-x"/></svg></span><b>Tippen</b><span>Kreuz setzen oder entfernen</span></div>
-        <div class="ctl"><span class="ctl-ico"><img src="assets/glider-1.webp" alt=""></span><b>Doppeltippen</b><span>Schirm setzen</span></div>
-        <div class="ctl"><span class="ctl-ico swipe"><svg class="x"><use href="#i-x"/></svg><svg class="x"><use href="#i-x"/></svg><svg class="x"><use href="#i-x"/></svg></span><b>Wischen</b><span>viele Kreuze auf einmal</span></div>
+        <div class="ctl"><span class="ctl-ico"><svg class="x"><use href="#i-x"/></svg></span><b data-i18n="help.tap">Tippen</b><span data-i18n="help.tapDesc">Kreuz setzen oder entfernen</span></div>
+        <div class="ctl"><span class="ctl-ico"><img src="assets/glider-1.webp" alt=""></span><b data-i18n="help.doubleTap">Doppeltippen</b><span data-i18n="help.doubleTapDesc">Schirm setzen</span></div>
+        <div class="ctl"><span class="ctl-ico swipe"><svg class="x"><use href="#i-x"/></svg><svg class="x"><use href="#i-x"/></svg><svg class="x"><use href="#i-x"/></svg></span><b data-i18n="help.swipe">Wischen</b><span data-i18n="help.swipeDesc">viele Kreuze auf einmal</span></div>
       </div>
-      <button class="btn btn-primary" data-action="help-close"><span class="btn-big">Los geht's!</span></button>
+      <button class="btn btn-primary" data-action="help-close"><span class="btn-big" data-i18n="help.go">Los geht's!</span></button>
     </div>
   </section>
 </main>
@@ -190,33 +190,33 @@
       <svg class="star" data-i="2"><use href="#i-star"/></svg>
     </div>
     <div class="win-stats">
-      <div><small id="win-time-label">Flugzeit</small><b id="win-time">0:00</b></div>
-      <div><small>Tipps</small><b id="win-hints">0</b></div>
-      <div><small id="win-record-label">Beste Combo</small><b id="win-combo">0</b></div>
+      <div><small id="win-time-label" data-i18n="win.time">Flugzeit</small><b id="win-time">0:00</b></div>
+      <div><small data-i18n="win.hints">Tipps</small><b id="win-hints">0</b></div>
+      <div><small id="win-record-label" data-i18n="win.bestCombo">Beste Combo</small><b id="win-combo">0</b></div>
     </div>
     <div class="win-xp">
       <div class="win-xp-head"><span id="win-rank">Flugschüler · Rang 1</span><b id="win-xp">+0</b></div>
       <div class="xp-bar"><i id="win-fill"></i></div>
-      <small id="win-xp-note">Punkte</small>
+      <small id="win-xp-note" data-i18n="win.points">Punkte</small>
     </div>
     <a class="kofi-note" id="kofi-note" href="https://ko-fi.com/tobiaswust" target="_blank" rel="noopener noreferrer" hidden>
       <span class="kofi-cup">☕</span>
-      <span><b>Gefällt dir Thermikdoku?</b><br>Es bleibt kostenlos und ohne Werbung. Wenn du magst, spendier mir einen Kaffee.</span>
+      <span data-i18n-html="win.kofi"><b>Gefällt dir Thermikdoku?</b><br>Es bleibt kostenlos und ohne Werbung. Wenn du magst, spendier mir einen Kaffee.</span>
     </a>
-    <button class="btn btn-primary" data-action="next"><span class="btn-big" id="win-next">Nächster Flug</span></button>
-    <button class="btn btn-light" data-action="win-menu"><span class="btn-big">Menü</span></button>
+    <button class="btn btn-primary" data-action="next"><span class="btn-big" id="win-next" data-i18n="win.next">Nächster Flug</span></button>
+    <button class="btn btn-light" data-action="win-menu"><span class="btn-big" data-i18n="win.menu">Menü</span></button>
   </div>
 </div>
 
 <!-- Rang-Aufstieg -->
 <div class="rankup" id="rankup" data-action="rankup-close">
   <div class="rankup-card">
-    <small>Neuer Pilotenrang!</small>
+    <small data-i18n="rankup.title">Neuer Pilotenrang!</small>
     <h2 id="rankup-name">Thermikjäger</h2>
     <img src="assets/glider-happy.webp" alt="">
     <div class="lvl" id="rankup-lvl">Rang 3</div>
     <div class="unlock" id="rankup-unlock" hidden></div>
-    <p>Tippen zum Weiterfliegen</p>
+    <p data-i18n="rankup.tap">Tippen zum Weiterfliegen</p>
   </div>
 </div>
 
@@ -224,11 +224,11 @@
 <div class="modal" id="modal-wind" aria-hidden="true">
   <div class="card">
     <div class="win-glider"><img src="assets/glider-scared.webp" alt=""></div>
-    <h2>Abgetrieben!</h2>
-    <p class="modal-text">Der Gegenwind war diesmal stärker. Probier es nochmal oder flieg ohne Zeitlimit weiter, dann aber ohne den Gegenwind-Bonus.</p>
-    <button class="btn btn-primary" data-action="wind-retry"><span class="btn-big">Nochmal von vorn</span></button>
-    <button class="btn btn-light" data-action="wind-continue"><span class="btn-big">Ohne Gegenwind weiter</span></button>
-    <button class="link-btn" data-action="wind-menu">Zum Menü</button>
+    <h2 data-i18n="wind.title">Abgetrieben!</h2>
+    <p class="modal-text" data-i18n="wind.text">Der Gegenwind war diesmal stärker. Probier es nochmal oder flieg ohne Zeitlimit weiter, dann aber ohne den Gegenwind-Bonus.</p>
+    <button class="btn btn-primary" data-action="wind-retry"><span class="btn-big" data-i18n="wind.retry">Nochmal von vorn</span></button>
+    <button class="btn btn-light" data-action="wind-continue"><span class="btn-big" data-i18n="wind.continue">Ohne Gegenwind weiter</span></button>
+    <button class="link-btn" data-action="wind-menu" data-i18n="wind.menu">Zum Menü</button>
   </div>
 </div>
 
@@ -236,124 +236,58 @@
 <div class="modal" id="modal-install" aria-hidden="true">
   <div class="card">
     <div class="win-glider"><img src="assets/glider-happy.webp" alt=""></div>
-    <h2>Als App installieren</h2>
+    <h2 data-i18n="install.title">Als App installieren</h2>
     <ol class="install-steps">
-      <li><span>Tippe in Safari auf <b>Teilen</b> <svg class="share-ico" viewBox="0 0 24 24" aria-label="Teilen-Symbol"><path d="M12 3v12M8 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 11H6v9h12v-9h-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span></li>
-      <li><span>Wähle <b>Zum Home-Bildschirm</b></span></li>
-      <li><span>Tippe auf <b>Hinzufügen</b></span></li>
+      <li><span><span data-i18n-html="install.step1">Tippe in Safari auf <b>Teilen</b></span> <svg class="share-ico" viewBox="0 0 24 24" data-i18n-aria="install.shareIcon" aria-label="Teilen-Symbol"><path d="M12 3v12M8 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 11H6v9h12v-9h-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span></li>
+      <li><span data-i18n-html="install.step2">Wähle <b>Zum Home-Bildschirm</b></span></li>
+      <li><span data-i18n-html="install.step3">Tippe auf <b>Hinzufügen</b></span></li>
     </ol>
-    <p class="modal-text">Dann startet Thermikdoku wie eine App und läuft auch offline.</p>
-    <button class="btn btn-primary" data-action="install-close"><span class="btn-big">Alles klar</span></button>
+    <p class="modal-text" data-i18n="install.text">Dann startet Thermikdoku wie eine App und läuft auch offline.</p>
+    <button class="btn btn-primary" data-action="install-close"><span class="btn-big" data-i18n="install.ok">Alles klar</span></button>
   </div>
 </div>
 
 <!-- Neu-Auswahl -->
 <div class="modal" id="modal-new" aria-hidden="true">
   <div class="card">
-    <h2>Neu starten?</h2>
-    <button class="btn btn-light" data-action="clear-board"><span class="btn-big">Brett leeren</span></button>
-    <button class="btn btn-primary" data-action="new-puzzle" id="new-puzzle-btn"><span class="btn-big">Anderes Rätsel</span></button>
-    <button class="link-btn" data-action="new-cancel">Abbrechen</button>
+    <h2 data-i18n="new.title">Neu starten?</h2>
+    <button class="btn btn-light" data-action="clear-board"><span class="btn-big" data-i18n="new.clear">Brett leeren</span></button>
+    <button class="btn btn-primary" data-action="new-puzzle" id="new-puzzle-btn"><span class="btn-big" data-i18n="new.other">Anderes Rätsel</span></button>
+    <button class="link-btn" data-action="new-cancel" data-i18n="common.cancel">Abbrechen</button>
   </div>
 </div>
 
 <!-- Einstellungen -->
 <div class="modal" id="modal-settings" aria-hidden="true">
   <div class="card">
-    <h2>Einstellungen</h2>
-    <label class="toggle"><span>Sound</span><input type="checkbox" id="set-sound"><i></i></label>
-    <label class="toggle"><span>Vibration</span><input type="checkbox" id="set-vibe"><i></i></label>
-    <label class="toggle"><span>Farbenblind-Modus<small>Zonen zusätzlich mit Symbolen</small></span><input type="checkbox" id="set-cb"><i></i></label>
-    <label class="toggle"><span>Automatische ×<small>Blockierte Felder anzeigen</small></span><input type="checkbox" id="set-autox"><i></i></label>
-    <button class="btn btn-light install-btn" data-action="install" hidden><span class="btn-big">📲 Als App installieren</span></button>
-    <button class="btn btn-light" data-action="settings-close"><span class="btn-big">Fertig</span></button>
-    <button class="link-btn" data-action="reset-progress">Fortschritt löschen</button>
-    <p class="settings-legal">Made with ❤️ by <a href="https://wust.dev/" target="_blank" rel="noopener noreferrer">Wust</a> · <button type="button" data-action="privacy">Datenschutz</button> · <button type="button" data-action="imprint">Impressum</button><br><a class="kofi-link" href="https://ko-fi.com/tobiaswust" target="_blank" rel="noopener noreferrer">☕ Gefällt dir Thermikdoku? Spendier mir einen Kaffee</a></p>
+    <h2 data-i18n="settings.title">Einstellungen</h2>
+    <label class="toggle"><span data-i18n="settings.sound">Sound</span><input type="checkbox" id="set-sound"><i></i></label>
+    <label class="toggle"><span data-i18n="settings.vibe">Vibration</span><input type="checkbox" id="set-vibe"><i></i></label>
+    <label class="toggle"><span><span data-i18n="settings.cb">Farbenblind-Modus</span><small data-i18n="settings.cbDesc">Zonen zusätzlich mit Symbolen</small></span><input type="checkbox" id="set-cb"><i></i></label>
+    <label class="toggle"><span><span data-i18n="settings.autox">Automatische ×</span><small data-i18n="settings.autoxDesc">Blockierte Felder anzeigen</small></span><input type="checkbox" id="set-autox"><i></i></label>
+    <div class="toggle lang-row"><span data-i18n="settings.lang" id="lang-label">Sprache</span><div class="lang-seg" role="group" aria-labelledby="lang-label"><button type="button" data-lang="de" lang="de" aria-pressed="true">Deutsch</button><button type="button" data-lang="en" lang="en" aria-pressed="false">English</button></div></div>
+    <button class="btn btn-light install-btn" data-action="install" hidden><span class="btn-big" data-i18n="footer.install">📲 Als App installieren</span></button>
+    <button class="btn btn-light" data-action="settings-close"><span class="btn-big" data-i18n="settings.done">Fertig</span></button>
+    <button class="link-btn" data-action="reset-progress" data-i18n="settings.reset">Fortschritt löschen</button>
+    <p class="settings-legal">Made with ❤️ by <a href="https://wust.dev/" target="_blank" rel="noopener noreferrer">Wust</a> · <button type="button" data-action="privacy" data-i18n="legal.privacy">Datenschutz</button> · <button type="button" data-action="imprint" data-i18n="legal.imprint">Impressum</button><br><a class="kofi-link" href="https://ko-fi.com/tobiaswust" target="_blank" rel="noopener noreferrer" data-i18n="settings.coffee">☕ Gefällt dir Thermikdoku? Spendier mir einen Kaffee</a></p>
   </div>
 </div>
 
-<!-- Datenschutz -->
+<!-- Datenschutz (Text aus js/legal.js, je nach Sprache) -->
 <div class="modal" id="modal-privacy" aria-hidden="true">
   <div class="card legal-card">
-    <h2>Datenschutz</h2>
-    <div class="legal">
-      <p class="legal-meta">Thermikdoku · Stand: November 2026</p>
-      <section>
-        <h3>1. Verantwortlicher</h3>
-        <p>Verantwortlich für die Datenverarbeitung auf dieser Website im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:</p>
-        <p>Tobias Wust<br>E-Mail: <a href="mailto:kontakt@tobiaswust.de">kontakt@tobiaswust.de</a></p>
-      </section>
-      <section>
-        <h3>2. Überblick</h3>
-        <p>Thermikdoku ist ein Rätselspiel, das komplett in deinem Browser läuft. Es gibt <strong>keine Konten, keine Cookies, keine Werbung und kein Tracking</strong>. Beteiligt sind nur zwei externe Dienste:</p>
-        <ul>
-          <li><strong>Netlify</strong> stellt die Dateien des Spiels bereit (Abschnitt 4).</li>
-          <li><strong>GoatCounter</strong> zählt Aufrufe anonym und ohne Cookies (Abschnitt 5).</li>
-        </ul>
-        <p>Der Link „Kaffee spendieren“ führt zu <strong>Ko-fi</strong> (ko-fi.com). Es wird nichts von Ko-fi in diese Seite geladen. Daten verarbeitet Ko-fi erst, wenn du den Link öffnest. Dann gilt die Datenschutzerklärung von Ko-fi.</p>
-      </section>
-      <section>
-        <h3>3. Daten auf deinem Gerät</h3>
-        <p>Spielstand, Statistik, Punkte und Einstellungen werden im lokalen Speicher deines Browsers (Local Storage) abgelegt. Damit das Spiel auch offline funktioniert, speichert ein Service Worker die App-Dateien im Browser-Cache.</p>
-        <ul>
-          <li>Diese Daten verlassen dein Gerät nie und sind für uns nicht einsehbar.</li>
-          <li>Du kannst sie jederzeit löschen: über „Fortschritt löschen“ in den Einstellungen oder indem du die Website-Daten in deinem Browser entfernst.</li>
-        </ul>
-        <p>Die Speicherung ist technisch erforderlich, um das von dir genutzte Spiel bereitzustellen (Art. 6 Abs. 1 lit. b DSGVO, § 25 Abs. 2 TDDDG).</p>
-      </section>
-      <section>
-        <h3>4. Hosting und Server-Logs (Netlify)</h3>
-        <p>Diese Website wird von <strong>Netlify, Inc.</strong> gehostet. Beim Aufruf verarbeitet Netlify automatisch technische Daten, die zur Auslieferung nötig sind, etwa IP-Adresse, Browsertyp und -version, Datum und Uhrzeit der Anfrage, die angefragte Datei und die übertragene Datenmenge. Wir nutzen diese Daten nicht für Tracking oder Analysen.</p>
-        <p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO – unser berechtigtes Interesse an einer sicheren und funktionierenden Website.</p>
-        <p>Netlify ist unser Auftragsverarbeiter auf Grundlage eines Auftragsverarbeitungsvertrags. Soweit Daten außerhalb der EU/des EWR verarbeitet werden, ist dies durch Standardvertragsklauseln abgesichert.</p>
-      </section>
-      <section>
-        <h3>5. Anonyme Besucherzählung (GoatCounter)</h3>
-        <p>Um ungefähr zu wissen, wie viele Menschen Thermikdoku spielen, werden Aufrufe mit GoatCounter (goatcounter.com) gezählt. GoatCounter setzt keine Cookies und speichert keine personenbezogenen Daten: Erfasst werden die aufgerufene Seite, die verweisende Seite, Browser, Bildschirmgröße und das Land, das aus der Anfrage abgeleitet wird. Die IP-Adresse wird nicht gespeichert. Spielstände und Eingaben werden nie übertragen.</p>
-        <p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO – unser berechtigtes Interesse daran, in zusammengefasster Form zu verstehen, wie viel das Spiel genutzt wird.</p>
-      </section>
-      <section>
-        <h3>6. Speicherdauer</h3>
-        <ul>
-          <li>Daten auf deinem Gerät bleiben dort, bis du sie löschst.</li>
-          <li>Server-Logs werden von Netlify nur so lange gespeichert, wie es technisch nötig ist.</li>
-        </ul>
-      </section>
-      <section>
-        <h3>7. Deine Rechte</h3>
-        <p>Nach der DSGVO hast du das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch gegen Verarbeitungen auf Grundlage berechtigter Interessen (Art. 21).</p>
-        <p>Wende dich dafür an <a href="mailto:kontakt@tobiaswust.de">kontakt@tobiaswust.de</a>. Außerdem hast du das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu beschweren.</p>
-      </section>
-      <section>
-        <h3>8. Änderungen</h3>
-        <p>Wir passen diese Erklärung an, wenn sich das Spiel oder die rechtlichen Anforderungen ändern. Es gilt die jeweils aktuelle Fassung.</p>
-      </section>
-    </div>
-    <button class="btn btn-light" data-action="legal-close"><span class="btn-big">Schließen</span></button>
+    <h2 id="privacy-title">Datenschutz</h2>
+    <div class="legal" id="privacy-body"></div>
+    <button class="btn btn-light" data-action="legal-close"><span class="btn-big" data-i18n="common.close">Schließen</span></button>
   </div>
 </div>
 
-<!-- Impressum -->
+<!-- Impressum (Text aus js/legal.js, je nach Sprache) -->
 <div class="modal" id="modal-imprint" aria-hidden="true">
   <div class="card legal-card">
-    <h2>Impressum</h2>
-    <div class="legal">
-      <p class="legal-meta">Angaben gemäß § 5 DDG</p>
-      <section>
-        <h3>Kontakt</h3>
-        <p>Tobias Wust<br>Vor den Kämpen 20<br>30851 Langenhagen<br>Deutschland</p>
-        <p>E-Mail: <a href="mailto:kontakt@tobiaswust.de">kontakt@tobiaswust.de</a></p>
-      </section>
-      <section>
-        <h3>Verantwortlich für den Inhalt</h3>
-        <p>Tobias Wust (Anschrift wie oben)</p>
-      </section>
-      <section>
-        <h3>Über dieses Projekt</h3>
-        <p>Thermikdoku ist ein privates, nicht-kommerzielles Projekt. Wie mit Daten umgegangen wird, steht in der <strong>Datenschutzerklärung</strong>.</p>
-      </section>
-    </div>
-    <button class="btn btn-light" data-action="legal-close"><span class="btn-big">Schließen</span></button>
+    <h2 id="imprint-title">Impressum</h2>
+    <div class="legal" id="imprint-body"></div>
+    <button class="btn btn-light" data-action="legal-close"><span class="btn-big" data-i18n="common.close">Schließen</span></button>
   </div>
 </div>
 

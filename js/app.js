@@ -1,5 +1,7 @@
 import { generateForDifficulty, DIFFICULTIES, mulberry32, shuffle, createLogicState, placeIn, nextLogicStep } from './puzzle.js';
 import { sfx, setSoundEnabled, unlockAudio } from './audio.js';
+import { t, tp, translate, setLang, onLang, pickLang, getLang, fmtNum, fmtList, LANGS } from './i18n.js';
+import { legalHtml } from './legal.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
@@ -51,14 +53,12 @@ const SPRITE_HAPPY = 'assets/glider-happy.webp';
   .forEach((src) => { const im = new Image(); im.src = src; });
 
 // ---------- Punkte & Ränge ----------
-const RANKS = [
-  [0, 'Flugschüler'], [250, 'Hüpfer'], [700, 'Thermikschnüffler'], [1500, 'Streckenflieger'],
-  [3000, 'Wolkenkitzler'], [5500, 'Alpenadler'], [9000, 'Himmelsakrobat'], [14000, 'Wolkenkönig'], [21000, 'Himmelslegende'],
-];
+// Punktgrenzen der Ränge; die Namen stehen in i18n/*.json als rank.0 … rank.8
+const RANKS = [0, 250, 700, 1500, 3000, 5500, 9000, 14000, 21000];
 function rankInfo(xp) {
   let i = 0;
-  while (i + 1 < RANKS.length && xp >= RANKS[i + 1][0]) i++;
-  let from = RANKS[i][0], to = RANKS[i + 1]?.[0], name = RANKS[i][1], lvl = i + 1;
+  while (i + 1 < RANKS.length && xp >= RANKS[i + 1]) i++;
+  let from = RANKS[i], to = RANKS[i + 1], name = t(`rank.${i}`), lvl = i + 1;
   if (to == null) { // jenseits der Liste: alle 9000 Punkte ein neuer Legenden-Rang
     const extra = Math.floor((xp - from) / 9000);
     from += extra * 9000; to = from + 9000; lvl += extra;
@@ -71,30 +71,38 @@ const DIFF_KEYS = ['leicht', 'mittel', 'schwer', 'experte'];
 const ALL_DIFFS = [...DIFF_KEYS, 'expedition'];
 // Modifikatoren: frei kombinierbar, gelten für neue Flüge auf allen Stufen (nicht für Tages- und Zeitflug)
 const MODS = [
-  { key: 'wolkenflug', name: 'Wolkenflug', icon: '☁️', bonus: 0.3, desc: 'Keine Kreuze, nur Schirme' },
-  { key: 'ohnetipps', name: 'Ohne Tipps', icon: '💡', bonus: 0.2, desc: 'Der Tipp-Knopf bleibt aus' },
-  { key: 'gegenwind', name: 'Gegenwind', icon: '🌬️', bonus: 0.3, desc: 'Zeitlimit: deine Bestzeit ×1,5' },
+  { key: 'wolkenflug', icon: '☁️', bonus: 0.3 },
+  { key: 'ohnetipps', icon: '💡', bonus: 0.2 },
+  { key: 'gegenwind', icon: '🌬️', bonus: 0.3 },
 ];
+// Namen und Beschreibungen in der aktuellen Sprache
+const modName = (k) => t(`mod.${k}.name`);
+const modDesc = (k) => t(`mod.${k}.desc`, { f: fmtNum(WIND_FACTOR) });
+const diffName = (k) => t(`diff.${k}`);
+const diffPlace = (k) => t(`place.${k}`);
 const MOD_BY_KEY = Object.fromEntries(MODS.map((m) => [m.key, m]));
 // Ab welchem Rang etwas freigeschaltet ist
 const UNLOCK_RANK = {
   leicht: 1, mittel: 2, schwer: 3, experte: 4,
   wolkenflug: 5, zeitflug: 5, ohnetipps: 6, expedition: 7, gegenwind: 8,
 };
-const UNLOCK_NAME = (k) => DIFFICULTIES[k]?.name || MOD_BY_KEY[k]?.name || 'Zeitflug';
+const UNLOCK_NAME = (k) => DIFFICULTIES[k] ? diffName(k) : MOD_BY_KEY[k] ? modName(k) : t('zeitflug.name');
 // Ab diesem Rang sind alle Stufen offen; dann tauchen die Extras (noch gesperrt) auf der Startseite auf
 const EXTRAS_FROM_RANK = 4;
-const unlockXp = (k) => RANKS[UNLOCK_RANK[k] - 1][0];
+const unlockXp = (k) => RANKS[UNLOCK_RANK[k] - 1];
 const isUnlocked = (k) => (store.xp || 0) >= unlockXp(k);
-const needText = (k) => `${UNLOCK_NAME(k)} gibt es ab Rang ${UNLOCK_RANK[k]}: noch ${unlockXp(k) - (store.xp || 0)} Punkte`;
+const needText = (k) => tp('unlock.need', unlockXp(k) - (store.xp || 0), { name: UNLOCK_NAME(k), lvl: UNLOCK_RANK[k] });
 const unlockedAt = (lvl) => Object.keys(UNLOCK_RANK).filter((k) => UNLOCK_RANK[k] === lvl);
 // Gegenwind ohne Bestzeit: feste Grenze je Stufe (Sekunden)
 const WIND_DEFAULT = { leicht: 180, mittel: 300, schwer: 600, experte: 1200, expedition: 1800 };
+const WIND_FACTOR = 1.5; // Gegenwind: Zeitlimit = Bestzeit × 1,5
 const ZEITFLUG_SECONDS = 300;
 const ZEITFLUG_XP = 30;
 
 // ---------- Speicher ----------
 const STORE_KEY = 'thermikdoku.v2';
+// Gab es vor diesem Start schon einen Spielstand? (entscheidet über die Standardsprache)
+const HAD_SAVE = (() => { try { return localStorage.getItem(STORE_KEY) != null || localStorage.getItem('thermikdoku.v1') != null; } catch { return false; } })();
 function defaults() {
   return {
     settings: { sound: true, vibe: true, autoX: false, colorblind: false },
@@ -119,6 +127,15 @@ delete store.daily;
 for (const k of Object.keys(store.current)) if (k.startsWith('D')) delete store.current[k];
 function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch {} }
 setSoundEnabled(store.settings.sound);
+
+// ---------- Sprache ----------
+// Die Wahl liegt in store.settings.lang. Bestehende Spieler ohne gespeicherte Sprache bleiben bei Deutsch,
+// neue Spieler bekommen Deutsch, wenn ihr Browser Deutsch zuerst nennt, sonst Englisch.
+if (!LANGS.includes(store.settings.lang)) {
+  store.settings.lang = HAD_SAVE ? 'de' : pickLang();
+  save();
+}
+await setLang(store.settings.lang);
 const statsOf = (d) => (store.stats[d] ||= { solved: 0, best: null, perfect: 0 });
 
 function vibe(p) { if (store.settings.vibe && navigator.vibrate) { try { navigator.vibrate(p); } catch {} } }
@@ -203,15 +220,15 @@ function renderHome() {
     const d = DIFFICULTIES[k];
     const st = statsOf(k);
     const icons = Array.from({ length: 4 }, (_, i) => `<img class="${i < d.icons ? '' : 'off'}" src="${sprite([0, 1, 5, 4, 3][idx])}" alt="">`).join('');
-    const info = st.solved ? `${st.solved} gelöst · ⏱ ${fmtTime(st.best)}` : 'Noch nicht geflogen';
-    const resume = store.current[k] ? '<span class="badge">Fortsetzen</span>' : '';
+    const info = st.solved ? t('home.solved', { n: st.solved, time: fmtTime(st.best) }) : t('home.notFlown');
+    const resume = store.current[k] ? `<span class="badge">${t('home.resume')}</span>` : '';
     const locked = !isUnlocked(k);
-    return `<button class="diff-card diff-${k}${locked ? ' locked' : ''}" data-diff="${k}" style="--k:${idx}"${locked ? ` aria-label="${d.name}, gesperrt"` : ''}>
+    return `<button class="diff-card diff-${k}${locked ? ' locked' : ''}" data-diff="${k}" style="--k:${idx}"${locked ? ` aria-label="${t('home.lockedAria', { name: diffName(k) })}"` : ''}>
       ${locked ? '<span class="diff-lock" aria-hidden="true">🔒</span>' : resume}
       <span class="diff-icons">${icons}</span>
-      <span class="diff-name">${d.name}</span>
-      <span class="diff-size">${sizeLabel(k)} · ${d.place}</span>
-      <span class="diff-info">${locked ? `Ab Rang ${UNLOCK_RANK[k]} · noch ${unlockXp(k) - (store.xp || 0)} Punkte` : info}</span>
+      <span class="diff-name">${diffName(k)}</span>
+      <span class="diff-size">${sizeLabel(k)} · ${diffPlace(k)}</span>
+      <span class="diff-info">${locked ? tp('home.lockedInfo', unlockXp(k) - (store.xp || 0), { lvl: UNLOCK_RANK[k] }) : info}</span>
     </button>`;
   }).join('');
   // Zeitflug
@@ -219,8 +236,8 @@ function renderHome() {
   zb.hidden = !extras;
   $('#mode-row').hidden = !extras;
   zb.classList.toggle('locked', !isUnlocked('zeitflug'));
-  $('#zeitflug-label').textContent = !isUnlocked('zeitflug') ? `🔒 ab Rang ${UNLOCK_RANK.zeitflug}`
-    : store.zeitflug.best ? `Rekord: ${store.zeitflug.best}` : '5 Minuten';
+  $('#zeitflug-label').textContent = !isUnlocked('zeitflug') ? t('zeitflug.locked', { lvl: UNLOCK_RANK.zeitflug })
+    : store.zeitflug.best ? t('zeitflug.record', { n: store.zeitflug.best }) : t('zeitflug.duration');
   // Modifikatoren
   const mods = $('#mods');
   mods.hidden = !extras;
@@ -228,8 +245,8 @@ function renderHome() {
     const locked = !isUnlocked(m.key);
     const on = !locked && !!store.mods[m.key];
     return `<button class="mod${on ? ' on' : ''}${locked ? ' locked' : ''}" data-mod="${m.key}" aria-pressed="${on}">
-      <span class="mod-ico" aria-hidden="true">${locked ? '🔒' : m.icon}</span><span>${m.name}</span>
-      ${locked ? `<small>Rang ${UNLOCK_RANK[m.key]}</small>` : ''}
+      <span class="mod-ico" aria-hidden="true">${locked ? '🔒' : m.icon}</span><span>${modName(m.key)}</span>
+      ${locked ? `<small>${t('home.modRank', { lvl: UNLOCK_RANK[m.key] })}</small>` : ''}
     </button>`;
   }).join('');
 }
@@ -293,24 +310,22 @@ async function startGame({ mode, diff, fresh = false }) {
   hideToast();
   pauseTimer();
   const token = ++startToken;
-  let key, title, sub, getPuzzle;
+  let key, getPuzzle;
   if (mode === 'zeitflug') {
     diff = 'leicht';
     key = null;
-    title = 'Zeitflug';
     if (fresh || !G.run) G.run = { solved: 0, elapsed: 0, hints: 0, bestCombo: 0, next: null };
-    sub = G.run.solved ? `${G.run.solved} geschafft` : 'So viele wie möglich';
     const next = G.run.next;
     G.run.next = null;
     getPuzzle = () => next || generate('leicht');
   } else {
     key = diff;
-    title = DIFFICULTIES[diff].name;
-    sub = `Flug Nr. ${statsOf(diff).solved + 1} · ${DIFFICULTIES[diff].place}`;
+    G.flightNo = statsOf(diff).solved + 1;
     getPuzzle = () => takePuzzle(diff);
     if (fresh) delete store.current[key];
   }
   G.mode = mode; G.diff = diff;
+  const { title, sub } = gameHeader();
   $('#game-title').textContent = title;
   $('#game-sub').textContent = sub;
   $('#timer').textContent = '0:00';
@@ -328,7 +343,7 @@ async function startGame({ mode, diff, fresh = false }) {
     if (token !== startToken) return;
     const mods = mode === 'free' ? Object.fromEntries(MODS.filter((m) => store.mods[m.key] && isUnlocked(m.key)).map((m) => [m.key, true])) : {};
     const best = statsOf(diff).best;
-    const limit = mods.gegenwind ? (best ? Math.max(60, Math.round(best * 1.5)) : WIND_DEFAULT[diff]) : null;
+    const limit = mods.gegenwind ? (best ? Math.max(60, Math.round(best * WIND_FACTOR)) : WIND_DEFAULT[diff]) : null;
     cur = { puzzle, cells: null, elapsed: 0, hints: 0, mistakes: 0, mods, limit };
     if (key) { store.current[key] = cur; save(); }
   }
@@ -347,8 +362,6 @@ async function startGame({ mode, diff, fresh = false }) {
   G.history = []; G.done = false; G.startedAt = null;
   G.combo = 0; G.bestCombo = mode === 'zeitflug' ? G.run.bestCombo : cur.bestCombo || 0; G.lastPlace = 0; G.milestones = new Set();
   $('#combo').classList.remove('show');
-  G.subBase = `${n}×${n} · ` + sub;
-  G.titleBase = title;
   updateGameSub();
   buildBoard();
   render({ initial: true });
@@ -506,7 +519,7 @@ function setCells(changes, { sound = true, hint = false } = {}) {
       if (sound) sfx.bad();
       vibe([30, 50, 30]);
       const why = info.reasons.get(placed);
-      toast({ touch: 'Kollisionsgefahr! Schirme dürfen sich nicht berühren.', row: 'Zwei Schirme in einer Reihe!', col: 'Zwei Schirme in einer Spalte!', zone: 'Zwei Schirme in einer Zone!' }[why], 'bad');
+      toast(t(`conflict.${why}`), 'bad');
       quake();
       const chip = document.querySelector(`.chip[data-rule="${{ row: 'line', col: 'line', zone: 'zone', touch: 'touch' }[why]}"]`);
       if (chip) { chip.classList.remove('alert'); void chip.offsetWidth; chip.classList.add('alert'); setTimeout(() => chip.classList.remove('alert'), 1600); }
@@ -559,7 +572,8 @@ function quake() {
   b.classList.remove('quake'); void b.offsetWidth; b.classList.add('quake');
 }
 
-const COMBO_WORDS = ['', '', 'Schön!', 'Super!', 'Klasse!', 'Wahnsinn!', 'Thermik-Profi!', 'Unaufhaltsam!', 'Himmelsstürmer!', 'Legendär!', 'Perfekt!'];
+// Combo-Wörter stehen in i18n/*.json als combo.2 … combo.10
+const COMBO_MAX = 10;
 const COMBO_COLORS = ['#fff', '#fff', '#a6f08a', '#7ce0ff', '#ffd23f', '#ff8fc7', '#c9a6ff', '#ff9f5a', '#7ce0ff', '#ffd23f', '#ff8fc7'];
 function bumpCombo(i) {
   const now = performance.now();
@@ -568,11 +582,11 @@ function bumpCombo(i) {
   G.bestCombo = Math.max(G.bestCombo, G.combo);
   const el = $('#combo');
   if (G.combo >= 2) {
-    const k = Math.min(G.combo, COMBO_WORDS.length - 1);
+    const k = Math.min(G.combo, COMBO_MAX);
     const c = cellCenter(i);
-    popup(COMBO_WORDS[k], c.x, c.y - c.w * 0.3, { color: COMBO_COLORS[k], size: 20 + Math.min(G.combo, 8) * 2 });
+    popup(t(`combo.${k}`), c.x, c.y - c.w * 0.3, { color: COMBO_COLORS[k], size: 20 + Math.min(G.combo, 8) * 2 });
     sfx.combo(G.combo);
-    el.textContent = `Combo ×${G.combo}`;
+    el.textContent = t('combo.label', { n: G.combo });
     el.classList.add('show');
     el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
     if (G.combo >= 4) burst(c.x, c.y, 6 + G.combo, SPARK_COLORS, { spread: c.w * 1.8, size: 16 });
@@ -590,8 +604,8 @@ function milestone(info, i) {
   const c = cellCenter(i);
   const half = Math.ceil(G.n / 2);
   let text = null;
-  if (count === G.n - 1 && !G.milestones.has('last')) { G.milestones.add('last'); text = 'Noch einer!'; }
-  else if (count === half && G.n >= 6 && !G.milestones.has('half')) { G.milestones.add('half'); text = 'Halbzeit!'; }
+  if (count === G.n - 1 && !G.milestones.has('last')) { G.milestones.add('last'); text = t('fx.last'); }
+  else if (count === half && G.n >= 6 && !G.milestones.has('half')) { G.milestones.add('half'); text = t('fx.half'); }
   if (text) {
     setTimeout(() => {
       const b = $('#board').getBoundingClientRect();
@@ -672,7 +686,7 @@ function tapCell(i) {
 function undo() {
   if (G.done) return;
   const prev = G.history.pop();
-  if (!prev) { toast('Nichts zum Rückgängigmachen'); return; }
+  if (!prev) { toast(t('toast.nothingToUndo')); return; }
   const changes = [];
   for (let i = 0; i < prev.length; i++) if (prev[i] !== G.cells[i]) changes.push([i, prev[i]]);
   setCells(changes, { sound: false });
@@ -689,7 +703,7 @@ function resetBoard() {
   setCells(changes, { sound: false });
   sfx.remove(); vibe(15);
   bumpTool('reset', 'spin');
-  toast('Neustart. Mit „Zurück“ holst du alles wieder.');
+  toast(t('toast.cleared'));
 }
 
 function bumpTool(action, cls) {
@@ -711,19 +725,15 @@ function highlight(cells, soft = []) {
   // die Markierung bleibt, bis man den Tipp wegdrückt
 }
 
-const UNIT = { row: 'Reihe', col: 'Spalte', zone: 'Zone' };
-const UNITS = { row: 'Reihen', col: 'Spalten', zone: 'Zonen' };
-
+// Jede Sprache hat eigene Sätze je Einheit (row/col/zone), damit die Grammatik stimmt
 function explain(step) {
   const u = step.units[0];
   switch (step.tech) {
-    case 1: return `In dieser ${UNIT[u.kind]} ist nur noch ein Platz frei.`;
-    case 2: return u.kind === 'zone'
-      ? `Diese Zone liegt komplett in einer ${UNIT[step.target.kind]}. Der Rest der ${UNIT[step.target.kind]} ist gesperrt.`
-      : `Diese ${UNIT[u.kind]} hat nur noch Plätze in einer Zone. Der Rest der Zone ist gesperrt.`;
-    case 3: return `Ein Schirm hier würde die markierte ${UNIT[u.kind]} komplett blockieren.`;
-    case 4: return `Diese ${step.k} ${UNITS[step.from]} passen nur in ${step.k} ${UNITS[step.to]}. Dort ist sonst alles gesperrt.`;
-    case 5: return `Probeflug: Mit einem Schirm hier bliebe für die markierte ${UNIT[u.kind]} später kein Platz.`;
+    case 1: return t(`hint.single.${u.kind}`);
+    case 2: return u.kind === 'zone' ? t(`hint.zoneInLine.${step.target.kind}`) : t(`hint.lineInZone.${u.kind}`);
+    case 3: return t(`hint.block.${u.kind}`);
+    case 4: return t('hint.group', { k: step.k, from: t(`hint.units.${step.from}`), to: t(`hint.units.${step.to}`) });
+    case 5: return t(`hint.probe.${u.kind}`);
   }
   return '';
 }
@@ -741,7 +751,7 @@ function hint() {
   if (wrongG.length) {
     pushHistory();
     highlight([wrongG[0]]);
-    toast('Dieser Schirm steht falsch. Ich nehme ihn weg.', '', { sticky: true });
+    toast(t('hint.wrongGlider'), '', { sticky: true });
     later(() => setCells([[wrongG[0], 0]], { sound: false }), 900);
     return saveProgress();
   }
@@ -749,7 +759,7 @@ function hint() {
   if (wrongX.length) {
     pushHistory();
     highlight([wrongX[0]]);
-    toast('Hier hast du ein × gesetzt, aber genau hier gehört ein Schirm hin.', '', { sticky: true });
+    toast(t('hint.wrongX'), '', { sticky: true });
     later(() => setCells([[wrongX[0], 0]], { sound: false }), 900);
     return saveProgress();
   }
@@ -765,7 +775,7 @@ function hint() {
     const r = [...Array(n).keys()].find((r) => cells[r * n + solution[r]] !== 2);
     const i = r * n + solution[r];
     highlight([i]);
-    toast('Kniffliger Flug! Hier fliegt sicher ein Schirm.', 'good', { sticky: true });
+    toast(t('hint.reveal'), 'good', { sticky: true });
     later(() => setCells([[i, 2]], { hint: true }), 700);
     return saveProgress();
   }
@@ -797,7 +807,7 @@ function checkWin(info) {
   const st = statsOf(G.diff);
   st.solved++;
   if (stars === 3) st.perfect++;
-  if (st.best == null || time < st.best) { if (st.best != null) record = 'Bestzeit!'; st.best = time; }
+  if (st.best == null || time < st.best) { if (st.best != null) record = t('win.bestTime'); st.best = time; }
   // Punkte
   const base = XP_BASE[G.diff];
   const mult = stars === 3 ? 2 : stars === 2 ? 1.4 : 1;
@@ -822,10 +832,18 @@ function timeUp() {
   quake();
   openModal('#modal-wind');
 }
+// Titel und Untertitel des laufenden Flugs in der aktuellen Sprache
+function gameHeader() {
+  if (G.mode === 'zeitflug') {
+    return { title: t('zeitflug.name'), sub: G.run?.solved ? t('zeitflug.done', { n: G.run.solved }) : t('zeitflug.sub') };
+  }
+  return { title: diffName(G.diff), sub: t('game.flightNo', { n: G.flightNo || 1, place: diffPlace(G.diff) }) };
+}
 function updateGameSub() {
+  const { title, sub } = gameHeader();
   const icons = MODS.filter((m) => G.mods[m.key]).map((m) => m.icon).join('');
-  $('#game-title').innerHTML = G.titleBase + (icons ? ` <span class="title-mods" title="Extras">${icons}</span>` : '');
-  $('#game-sub').textContent = G.subBase;
+  $('#game-title').innerHTML = title + (icons ? ` <span class="title-mods" title="${t('game.extras')}">${icons}</span>` : '');
+  $('#game-sub').textContent = `${G.n}×${G.n} · ` + sub;
 }
 function windRetry(keepWind) {
   closeModal('#modal-wind');
@@ -853,7 +871,7 @@ function zeitflugSolved() {
   sfx.win(); vibe([20, 40, 20]);
   const br = $('#board').getBoundingClientRect();
   burst(br.left + br.width / 2, br.top + br.height / 2, 18, SPARK_COLORS, { spread: br.width * 0.6, size: 20 });
-  popup(`${run.solved} geschafft!`, br.left + br.width / 2, br.top + br.height / 2, { color: '#ffd23f', size: 32 });
+  popup(t('zeitflug.popup', { n: run.solved }), br.left + br.width / 2, br.top + br.height / 2, { color: '#ffd23f', size: 32 });
   $('#board').classList.add('won');
   setTimeout(() => { if (G.run === run && currentScreen === 'game') startGame({ mode: 'zeitflug' }); }, 900);
 }
@@ -865,7 +883,7 @@ function zeitflugEnd() {
   const zf = store.zeitflug;
   zf.runs++;
   let record = '';
-  if (solved > zf.best) { if (zf.best) record = 'Neuer Rekord!'; zf.best = solved; }
+  if (solved > zf.best) { if (zf.best) record = t('win.newRecord'); zf.best = solved; }
   const stars = solved >= 9 ? 3 : solved >= 6 ? 2 : solved >= 3 ? 1 : 0;
   const comboBonus = run.bestCombo >= 2 ? run.bestCombo * 5 : 0;
   const gain = solved * ZEITFLUG_XP + comboBonus;
@@ -931,7 +949,7 @@ function confetti(amount = 54) {
   }
 }
 
-const WIN_TITLES = ['Sanft gelandet!', 'Perfekte Thermik!', 'Toplandung!', 'Was für ein Flug!', 'Luftraum gesichert!', 'Butterweich gelandet!'];
+const WIN_TITLES = 6; // win.title.0 … win.title.5 in i18n/*.json
 function countUp(el, to, { dur = 900, fmt = (v) => v, tick = true } = {}) {
   const t0 = performance.now();
   let last = -1;
@@ -955,14 +973,14 @@ function setRankBar(fill, frac, instant = false) {
 
 function showWin(stars, time, record, xp) {
   const zf = G.mode === 'zeitflug';
-  $('#win-time-label').textContent = zf ? 'Geschafft' : 'Flugzeit';
-  $('#win-record-label').textContent = zf ? 'Rekord' : 'Beste Combo';
+  $('#win-time-label').textContent = zf ? t('win.solved') : t('win.time');
+  $('#win-record-label').textContent = zf ? t('win.record') : t('win.bestCombo');
   if (zf) {
-    $('#win-title').textContent = 'Zeit um!';
+    $('#win-title').textContent = t('win.timeUp');
     $('#win-hints').textContent = G.run.hints;
     $('#win-combo').textContent = store.zeitflug.best;
   }
-  else $('#win-title').textContent = stars === 3 ? WIN_TITLES[Math.floor(Math.random() * WIN_TITLES.length)] : stars === 2 ? 'Gut gelandet!' : 'Gelandet!';
+  else $('#win-title').textContent = stars === 3 ? t(`win.title.${Math.floor(Math.random() * WIN_TITLES)}`) : stars === 2 ? t('win.good') : t('win.ok');
   if (!zf) {
     $('#win-hints').textContent = G.hints;
     $('#win-combo').textContent = G.bestCombo >= 2 ? `×${G.bestCombo}` : '–';
@@ -976,18 +994,18 @@ function showWin(stars, time, record, xp) {
     store.kofiShown = true; save();
     kofi.hidden = false;
   }
-  $('#win-next').textContent = zf ? 'Nochmal' : `Neuer Flug · ${DIFFICULTIES[G.diff].name}`;
+  $('#win-next').textContent = zf ? t('win.again') : t('win.nextDiff', { name: diffName(G.diff) });
   $$('.win-stars .star').forEach((s) => s.classList.remove('on'));
   const before = rankInfo(xp.xpBefore), after = rankInfo(xp.xpBefore + xp.gain);
   const fill = $('#win-fill');
-  $('#win-rank').textContent = `${before.name} · Rang ${before.lvl}`;
+  $('#win-rank').textContent = t('rank.line', { name: before.name, lvl: before.lvl });
   $('#win-xp').textContent = '+0';
   const notes = [];
-  if (xp.mult > 1) notes.push(`Sterne ×${xp.mult}`);
-  if (xp.comboBonus) notes.push(`Combo +${xp.comboBonus}`);
-  if (xp.modBonus) notes.push(`Extras +${Math.round(xp.modBonus * 100)} %`);
-  if (zf) notes.unshift(`${ZEITFLUG_XP} pro Rätsel`);
-  $('#win-xp-note').textContent = 'Punkte' + (notes.length ? ' · ' + notes.join(' · ') : '');
+  if (xp.mult > 1) notes.push(t('win.noteStars', { m: xp.mult }));
+  if (xp.comboBonus) notes.push(t('win.noteCombo', { n: xp.comboBonus }));
+  if (xp.modBonus) notes.push(t('win.noteExtras', { p: Math.round(xp.modBonus * 100) }));
+  if (zf) notes.unshift(t('win.notePerPuzzle', { n: ZEITFLUG_XP }));
+  $('#win-xp-note').textContent = t('win.points') + (notes.length ? ' · ' + notes.join(' · ') : '');
   setRankBar(fill, before.frac, true);
   openModal('#modal-win');
   countUp($('#win-time'), time, { dur: 700, fmt: zf ? String : fmtTime, tick: false });
@@ -1002,13 +1020,13 @@ function showWin(stars, time, record, xp) {
   });
   // Punkte hochzählen und Balken füllen
   setTimeout(() => {
-    countUp($('#win-xp'), xp.gain, { dur: 1000, fmt: (v) => `+${v}` });
+    countUp($('#win-xp'), xp.gain, { dur: 1000, fmt: (v) => `+${fmtNum(v)}` });
     if (after.lvl > before.lvl) {
       setRankBar(fill, 1);
       setTimeout(() => {
         setRankBar(fill, 0, true);
         setRankBar(fill, after.frac);
-        $('#win-rank').textContent = `${after.name} · Rang ${after.lvl}`;
+        $('#win-rank').textContent = t('rank.line', { name: after.name, lvl: after.lvl });
         showRankUp(after);
       }, 750);
     } else setRankBar(fill, after.frac);
@@ -1017,11 +1035,11 @@ function showWin(stars, time, record, xp) {
 
 function showRankUp(r) {
   $('#rankup-name').textContent = r.name;
-  $('#rankup-lvl').textContent = `Rang ${r.lvl}`;
+  $('#rankup-lvl').textContent = t('rankup.lvl', { lvl: r.lvl });
   const fresh = unlockedAt(r.lvl);
   const un = $('#rankup-unlock');
   un.hidden = !fresh.length;
-  if (fresh.length) un.innerHTML = `Neu freigeschaltet: <b>${fresh.map(UNLOCK_NAME).join(', ')}</b>`;
+  if (fresh.length) un.innerHTML = t('rankup.unlocked', { list: fmtList(fresh.map(UNLOCK_NAME)) });
   const el = $('#rankup');
   el.classList.add('show');
   sfx.levelUp(); vibe([40, 60, 40, 60, 80]);
@@ -1154,7 +1172,14 @@ document.addEventListener('click', (e) => {
     store.mods[m.key] = !store.mods[m.key]; save();
     mb.classList.toggle('on', store.mods[m.key]);
     mb.setAttribute('aria-pressed', store.mods[m.key]);
-    toast(store.mods[m.key] ? `${m.name} an: ${m.desc}` : `${m.name} aus`, store.mods[m.key] ? 'good' : '');
+    toast(store.mods[m.key] ? t('mod.on', { name: modName(m.key), desc: modDesc(m.key) }) : t('mod.off', { name: modName(m.key) }), store.mods[m.key] ? 'good' : '');
+    return;
+  }
+  const lb = e.target.closest('[data-lang]');
+  if (lb) {
+    sfx.click();
+    const l = lb.dataset.lang;
+    if (l !== getLang()) { store.settings.lang = l; save(); setLang(l); }
     return;
   }
   const b = e.target.closest('[data-action]');
@@ -1173,13 +1198,13 @@ document.addEventListener('click', (e) => {
     case 'wind-menu': closeModal('#modal-wind'); show('home'); break;
     case 'rank': {
       const r = rankInfo(store.xp || 0);
-      toast(`${r.name}: noch ${r.to - (store.xp || 0)} Punkte bis Rang ${r.lvl + 1}`, 'good');
+      toast(tp('rank.toast', r.to - (store.xp || 0), { name: r.name, next: r.lvl + 1 }), 'good');
       break;
     }
     case 'rankup-close': $('#rankup').classList.remove('show'); break;
     case 'home': show('home'); break;
     case 'back-from-game':
-      if (G.mode === 'zeitflug' && G.run && !G.done) { G.run = null; G.done = true; toast('Zeitflug abgebrochen'); }
+      if (G.mode === 'zeitflug' && G.run && !G.done) { G.run = null; G.done = true; toast(t('zeitflug.aborted')); }
       show('home');
       break;
     case 'help': helpReturn = currentScreen; openHelp(); break;
@@ -1195,10 +1220,10 @@ document.addEventListener('click', (e) => {
     case 'imprint': closeModal('#modal-settings'); openModal('#modal-imprint'); break;
     case 'legal-close': closeModal('#modal-privacy'); closeModal('#modal-imprint'); break;
     case 'reset-progress':
-      if (confirm('Wirklich Statistik und Spielstände löschen?')) {
+      if (confirm(t('settings.resetConfirm'))) {
         const s = store.settings, pool = store.pool;
         Object.assign(store, defaults(), { settings: s, pool, seenHelp: true }); save();
-        closeModal('#modal-settings'); renderHome(); toast('Fortschritt gelöscht');
+        closeModal('#modal-settings'); renderHome(); toast(t('toast.resetDone'));
       }
       break;
     case 'undo': undo(); break;
@@ -1333,7 +1358,7 @@ function updateInstall() {
   $$('.install-link, .install-btn').forEach((el) => (el.hidden = !can));
 }
 addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installPrompt = e; updateInstall(); });
-addEventListener('appinstalled', () => { installPrompt = null; updateInstall(); toast('Installiert! Viel Spaß beim Fliegen.', 'good'); });
+addEventListener('appinstalled', () => { installPrompt = null; updateInstall(); toast(t('toast.installed'), 'good'); });
 async function install() {
   closeModal('#modal-settings');
   if (installPrompt) {
@@ -1346,9 +1371,28 @@ async function install() {
 }
 updateInstall();
 
+// ---------- Sprachwechsel ----------
+// Datenschutz und Impressum kommen aus js/legal.js (wie im Kit), mit GoatCounter-Abschnitt
+function renderLegal() {
+  const html = legalHtml(getLang(), 'Thermikdoku', true);
+  for (const id of ['privacy', 'imprint']) {
+    const m = html[id].match(/^<h2>(.*?)<\/h2>([\s\S]*)$/);
+    $(`#${id}-title`).innerHTML = m[1];
+    $(`#${id}-body`).innerHTML = m[2];
+  }
+}
+function applyLang() {
+  renderLegal();
+  $('#logo img').alt = t('home.logoAlt');
+  $$('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === getLang())));
+  renderHome();
+  if (G.cells) updateGameSub();
+}
+onLang(applyLang);
+
 // ---------- Start ----------
 localStorage.removeItem('thermikdoku.v1');
-renderHome();
+applyLang();
 // Vorrat für alle Stufen im Hintergrund füllen
 ALL_DIFFS.filter(isUnlocked).forEach((d, i) => setTimeout(() => refillPool(d), 400 + i * 300));
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {

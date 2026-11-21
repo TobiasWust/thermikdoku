@@ -694,6 +694,13 @@ img { -webkit-user-drag: none; user-select: none; }
 .toggle i::after { content: ""; position: absolute; top: 2px; left: 2px; width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 2.5px solid var(--ink); box-sizing: border-box; transition: transform .3s cubic-bezier(.2, 1.6, .4, 1); }
 .toggle input:checked + i { background: var(--good); }
 .toggle input:checked + i::after { transform: translateX(22px); }
+/* Sprachwahl in den Einstellungen */
+.lang-seg { display: flex; flex-shrink: 0; border: 3px solid var(--ink); border-radius: 18px; overflow: hidden; background: #d6dde8; }
+.lang-seg button { padding: 6px 11px; font-size: 14px; font-weight: 900; color: var(--ink-soft); transition: background .2s, color .2s; }
+.lang-seg button + button { border-left: 3px solid var(--ink); }
+.lang-seg button[aria-pressed="true"] { background: var(--good); color: var(--ink); }
+/* Mit der Sprachzeile ist die Karte höher: auf kleinen Handys etwas enger setzen */
+@media (max-height: 720px) { #modal-settings .toggle { padding: 8px 4px; } #modal-settings .card { gap: 8px; } }
 
 /* ---------- Toast ---------- */
 .toast {
