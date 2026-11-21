@@ -71,8 +71,8 @@ const DIFF_KEYS = ['leicht', 'mittel', 'schwer', 'experte'];
 const ALL_DIFFS = [...DIFF_KEYS, 'expedition'];
 // Modifikatoren: frei kombinierbar, gelten für neue Flüge auf allen Stufen (nicht für Tages- und Zeitflug)
 const MODS = [
-  { key: 'wolkenflug', icon: '☁️', bonus: 0.3 },
   { key: 'ohnetipps', icon: '💡', bonus: 0.2 },
+  { key: 'wolkenflug', icon: '☁️', bonus: 0.3 },
   { key: 'gegenwind', icon: '🌬️', bonus: 0.3 },
 ];
 // Namen und Beschreibungen in der aktuellen Sprache
@@ -84,7 +84,7 @@ const MOD_BY_KEY = Object.fromEntries(MODS.map((m) => [m.key, m]));
 // Ab welchem Rang etwas freigeschaltet ist
 const UNLOCK_RANK = {
   leicht: 1, mittel: 2, schwer: 3, experte: 4,
-  wolkenflug: 5, zeitflug: 5, ohnetipps: 6, expedition: 7, gegenwind: 8,
+  ohnetipps: 5, zeitflug: 5, wolkenflug: 6, expedition: 7, gegenwind: 8,
 };
 const UNLOCK_NAME = (k) => DIFFICULTIES[k] ? diffName(k) : MOD_BY_KEY[k] ? modName(k) : t('zeitflug.name');
 // Ab diesem Rang sind alle Stufen offen; dann tauchen die Extras (noch gesperrt) auf der Startseite auf

@@ -295,7 +295,17 @@
 <div class="fx" id="fx" aria-hidden="true"></div>
 
 <script type="module" src="js/app.js"></script>
-<script data-goatcounter="https://thermikdoku.goatcounter.com/count"
+<script>
+  // Gemeinsamer GoatCounter aller Karakuri-Spiele: Aufrufe unter /thermikdoku/, Ko-fi-Klicks als kofi/thermikdoku/…
+  window.goatcounter = { path: (p) => '/thermikdoku' + (p.startsWith('/') ? p : '/' + p) };
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest && e.target.closest('a[href*="ko-fi.com"]');
+    if (!a) return;
+    const where = a.closest('footer') ? 'footer' : a.classList.contains('kofi-note') ? 'note' : 'settings';
+    try { window.goatcounter.count && window.goatcounter.count({ path: 'kofi/thermikdoku/' + where, title: 'Ko-fi: Thermikdoku (' + where + ')', event: true }); } catch {}
+  }, true);
+</script>
+<script data-goatcounter="https://karakurigames.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
