@@ -14,6 +14,7 @@
 <link rel="icon" href="icons/icon-64.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="preload" as="image" href="assets/glider-1.webp">
+<link rel="stylesheet" href="kit/kit.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -93,7 +94,7 @@
         <span class="rank-lvl" id="rank-lvl">1</span>
         <span class="rank-info"><span class="rank-name" id="rank-name">Flugschüler</span><span class="xp-bar"><i id="rank-fill"></i></span></span>
       </button>
-      <button class="icon-btn" data-action="settings" data-i18n-aria="home.settings" aria-label="Einstellungen"><svg><use href="#i-gear"/></svg></button>
+      <button class="icon-btn" data-kit="settings" data-i18n-aria="kit.settings" aria-label="Einstellungen"><svg><use href="#i-gear"/></svg></button>
     </div>
     <div class="home-hero">
       <div class="logo-glider" id="logo"><img src="assets/glider-1.webp" alt="Gleitschirmflieger"></div>
@@ -114,16 +115,7 @@
         <div class="mods-list" id="mods-list"></div>
       </div>
     </div>
-    <footer class="app-footer">
-      <p>Made with <span class="heart">❤️</span> by <a href="https://wust.dev/" target="_blank" rel="noopener noreferrer">Wust</a><span class="install-link" hidden> · <button type="button" data-action="install" data-i18n="footer.install">📲 Als App installieren</button></span></p>
-      <p class="app-footer-legal">
-        <button type="button" data-action="privacy" data-i18n="legal.privacy">Datenschutz</button>
-        <span aria-hidden="true">·</span>
-        <button type="button" data-action="imprint" data-i18n="legal.imprint">Impressum</button>
-        <span aria-hidden="true">·</span>
-        <a href="https://ko-fi.com/tobiaswust" target="_blank" rel="noopener noreferrer" data-i18n="footer.coffee">☕ Kaffee spendieren</a>
-      </p>
-    </footer>
+    <footer data-kit-footer></footer>
   </section>
 
   <!-- Spiel -->
@@ -135,6 +127,7 @@
         <small id="game-sub">5×5</small>
       </div>
       <div class="timer" id="timer">0:00</div>
+      <button class="icon-btn" data-kit="settings" data-i18n-aria="kit.settings" aria-label="Einstellungen"><svg><use href="#i-gear"/></svg></button>
     </header>
     <div class="rule-chips" data-i18n-aria="game.rules" aria-label="Regeln">
       <div class="chip" data-rule="zone"><span data-i18n-html="rules.zone"><b>1</b> Schirm pro Farbzone</span></div>
@@ -199,7 +192,7 @@
       <div class="xp-bar"><i id="win-fill"></i></div>
       <small id="win-xp-note" data-i18n="win.points">Punkte</small>
     </div>
-    <a class="kofi-note" id="kofi-note" href="https://ko-fi.com/tobiaswust" target="_blank" rel="noopener noreferrer" hidden>
+    <a class="kofi-note" id="kofi-note" href="https://ko-fi.com/tobiaswust" target="_blank" rel="noopener noreferrer" data-kofi="note" hidden>
       <span class="kofi-cup">☕</span>
       <span data-i18n-html="win.kofi"><b>Gefällt dir Thermikdoku?</b><br>Es bleibt kostenlos und ohne Werbung. Wenn du magst, spendier mir einen Kaffee.</span>
     </a>
@@ -232,21 +225,6 @@
   </div>
 </div>
 
-<!-- Installieren auf iPhone/iPad (Safari kennt keinen Installier-Dialog) -->
-<div class="modal" id="modal-install" aria-hidden="true">
-  <div class="card">
-    <div class="win-glider"><img src="assets/glider-happy.webp" alt=""></div>
-    <h2 data-i18n="install.title">Als App installieren</h2>
-    <ol class="install-steps">
-      <li><span><span data-i18n-html="install.step1">Tippe in Safari auf <b>Teilen</b></span> <svg class="share-ico" viewBox="0 0 24 24" data-i18n-aria="install.shareIcon" aria-label="Teilen-Symbol"><path d="M12 3v12M8 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 11H6v9h12v-9h-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></span></li>
-      <li><span data-i18n-html="install.step2">Wähle <b>Zum Home-Bildschirm</b></span></li>
-      <li><span data-i18n-html="install.step3">Tippe auf <b>Hinzufügen</b></span></li>
-    </ol>
-    <p class="modal-text" data-i18n="install.text">Dann startet Thermikdoku wie eine App und läuft auch offline.</p>
-    <button class="btn btn-primary" data-action="install-close"><span class="btn-big" data-i18n="install.ok">Alles klar</span></button>
-  </div>
-</div>
-
 <!-- Neu-Auswahl -->
 <div class="modal" id="modal-new" aria-hidden="true">
   <div class="card">
@@ -257,56 +235,9 @@
   </div>
 </div>
 
-<!-- Einstellungen -->
-<div class="modal" id="modal-settings" aria-hidden="true">
-  <div class="card">
-    <h2 data-i18n="settings.title">Einstellungen</h2>
-    <label class="toggle"><span data-i18n="settings.sound">Sound</span><input type="checkbox" id="set-sound"><i></i></label>
-    <label class="toggle"><span data-i18n="settings.music">Musik</span><input type="checkbox" id="set-music"><i></i></label>
-    <label class="toggle"><span data-i18n="settings.vibe">Vibration</span><input type="checkbox" id="set-vibe"><i></i></label>
-    <label class="toggle"><span><span data-i18n="settings.cb">Farbenblind-Modus</span><small data-i18n="settings.cbDesc">Zonen zusätzlich mit Symbolen</small></span><input type="checkbox" id="set-cb"><i></i></label>
-    <label class="toggle"><span><span data-i18n="settings.autox">Automatische ×</span><small data-i18n="settings.autoxDesc">Blockierte Felder anzeigen</small></span><input type="checkbox" id="set-autox"><i></i></label>
-    <div class="toggle lang-row"><span data-i18n="settings.lang" id="lang-label">Sprache</span><div class="lang-seg" role="group" aria-labelledby="lang-label"><button type="button" data-lang="de" lang="de" aria-pressed="true">Deutsch</button><button type="button" data-lang="en" lang="en" aria-pressed="false">English</button></div></div>
-    <button class="btn btn-light install-btn" data-action="install" hidden><span class="btn-big" data-i18n="footer.install">📲 Als App installieren</span></button>
-    <button class="btn btn-light" data-action="settings-close"><span class="btn-big" data-i18n="settings.done">Fertig</span></button>
-    <button class="link-btn" data-action="reset-progress" data-i18n="settings.reset">Fortschritt löschen</button>
-    <p class="settings-legal">Made with ❤️ by <a href="https://wust.dev/" target="_blank" rel="noopener noreferrer">Wust</a> · <button type="button" data-action="privacy" data-i18n="legal.privacy">Datenschutz</button> · <button type="button" data-action="imprint" data-i18n="legal.imprint">Impressum</button><br><a class="kofi-link" href="https://ko-fi.com/tobiaswust" target="_blank" rel="noopener noreferrer" data-i18n="settings.coffee">☕ Gefällt dir Thermikdoku? Spendier mir einen Kaffee</a></p>
-  </div>
-</div>
-
-<!-- Datenschutz (Text aus js/legal.js, je nach Sprache) -->
-<div class="modal" id="modal-privacy" aria-hidden="true">
-  <div class="card legal-card">
-    <h2 id="privacy-title">Datenschutz</h2>
-    <div class="legal" id="privacy-body"></div>
-    <button class="btn btn-light" data-action="legal-close"><span class="btn-big" data-i18n="common.close">Schließen</span></button>
-  </div>
-</div>
-
-<!-- Impressum (Text aus js/legal.js, je nach Sprache) -->
-<div class="modal" id="modal-imprint" aria-hidden="true">
-  <div class="card legal-card">
-    <h2 id="imprint-title">Impressum</h2>
-    <div class="legal" id="imprint-body"></div>
-    <button class="btn btn-light" data-action="legal-close"><span class="btn-big" data-i18n="common.close">Schließen</span></button>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 <div class="fx" id="fx" aria-hidden="true"></div>
 
-<script type="module" src="js/app.js"></script>
-<script>
-  // Gemeinsamer GoatCounter aller Karakuri-Spiele: Aufrufe unter /thermikdoku/, Ko-fi-Klicks als kofi/thermikdoku/…
-  window.goatcounter = { path: (p) => '/thermikdoku' + (p.startsWith('/') ? p : '/' + p) };
-  document.addEventListener('click', (e) => {
-    const a = e.target.closest && e.target.closest('a[href*="ko-fi.com"]');
-    if (!a) return;
-    const where = a.closest('footer') ? 'footer' : a.classList.contains('kofi-note') ? 'note' : 'settings';
-    try { window.goatcounter.count && window.goatcounter.count({ path: 'kofi/thermikdoku/' + where, title: 'Ko-fi: Thermikdoku (' + where + ')', event: true }); } catch {}
-  }, true);
-</script>
-<script data-goatcounter="https://karakurigames.goatcounter.com/count"
-        async src="//gc.zgo.at/count.js"></script>
+<script type="module" src="js/game.js"></script>
 </body>
 </html>

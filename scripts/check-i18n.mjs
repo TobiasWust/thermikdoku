@@ -28,7 +28,8 @@ for (const k of keysA) {
 
 const has = (k) => LANGS.every((l) => k in dicts[l]);
 const used = new Set();
-const need = (k, where) => { used.add(k); if (!has(k)) errors.push(`${k}: benutzt in ${where}, aber nicht in allen Sprachen vorhanden`); };
+// kit.*-Texte bringt das Kit selbst mit (kit/kit.js)
+const need = (k, where) => { used.add(k); if (!k.startsWith('kit.') && !has(k)) errors.push(`${k}: benutzt in ${where}, aber nicht in allen Sprachen vorhanden`); };
 
 // 2) HTML
 const html = read('index.html');
@@ -52,7 +53,7 @@ for (const [p, where] of prefixes) {
 }
 
 // 4) dynamische Familien vollständig
-const app = read('js/app.js'), puzzle = read('js/puzzle.js');
+const app = read('js/game.js'), puzzle = read('js/puzzle.js');
 const ranks = app.match(/const RANKS = \[([^\]]+)\]/)[1].split(',').length;
 for (let i = 0; i < ranks; i++) need(`rank.${i}`, 'RANKS');
 const comboMax = Number(app.match(/const COMBO_MAX = (\d+)/)[1]);

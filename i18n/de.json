@@ -1,14 +1,10 @@
 {
   "meta.title": "Thermikdoku",
   "meta.description": "Kawaii-Logikrätsel mit Gleitschirmen – ein Schirm pro Reihe, Spalte und Thermik-Zone. Ohne Werbung.",
-
   "common.back": "Zurück",
   "common.cancel": "Abbrechen",
-  "common.close": "Schließen",
-
   "home.help": "Anleitung",
   "home.rank": "Pilotenrang",
-  "home.settings": "Einstellungen",
   "home.logoAlt": "Gleitschirmflieger",
   "home.subtitle": "Ein Schirm pro Reihe, Spalte und Zone.<br>Nicht zusammenstoßen!",
   "home.choose": "Wähle deinen Flug",
@@ -20,10 +16,6 @@
   "home.lockedInfo.one": "Ab Rang {lvl} · noch {n} Punkt",
   "home.lockedInfo.other": "Ab Rang {lvl} · noch {n} Punkte",
   "home.modRank": "Rang {lvl}",
-
-  "footer.install": "📲 Als App installieren",
-  "footer.coffee": "☕ Kaffee spendieren",
-
   "diff.leicht": "Leicht",
   "diff.mittel": "Mittel",
   "diff.schwer": "Schwer",
@@ -34,7 +26,6 @@
   "place.schwer": "Alpenpass",
   "place.experte": "Himalaya",
   "place.expedition": "Karakorum",
-
   "rank.0": "Flugschüler",
   "rank.1": "Hüpfer",
   "rank.2": "Thermikschnüffler",
@@ -47,10 +38,8 @@
   "rank.line": "{name} · Rang {lvl}",
   "rank.toast.one": "{name}: noch {n} Punkt bis Rang {next}",
   "rank.toast.other": "{name}: noch {n} Punkte bis Rang {next}",
-
   "unlock.need.one": "{name} gibt es ab Rang {lvl}: noch {n} Punkt",
   "unlock.need.other": "{name} gibt es ab Rang {lvl}: noch {n} Punkte",
-
   "zeitflug.name": "Zeitflug",
   "zeitflug.duration": "5 Minuten",
   "zeitflug.locked": "🔒 ab Rang {lvl}",
@@ -59,7 +48,6 @@
   "zeitflug.done": "{n} geschafft",
   "zeitflug.popup": "{n} geschafft!",
   "zeitflug.aborted": "Zeitflug abgebrochen",
-
   "mod.wolkenflug.name": "Wolkenflug",
   "mod.wolkenflug.desc": "Keine Kreuze, nur Schirme",
   "mod.ohnetipps.name": "Ohne Tipps",
@@ -68,7 +56,6 @@
   "mod.gegenwind.desc": "Zeitlimit: deine Bestzeit ×{f}",
   "mod.on": "{name} an: {desc}",
   "mod.off": "{name} aus",
-
   "game.flightNo": "Flug Nr. {n} · {place}",
   "game.extras": "Extras",
   "game.rules": "Regeln",
@@ -79,12 +66,10 @@
   "tools.undo": "Zurück",
   "tools.hint": "Tipp",
   "tools.reset": "Neu",
-
   "conflict.touch": "Kollisionsgefahr! Schirme dürfen sich nicht berühren.",
   "conflict.row": "Zwei Schirme in einer Reihe!",
   "conflict.col": "Zwei Schirme in einer Spalte!",
   "conflict.zone": "Zwei Schirme in einer Zone!",
-
   "combo.label": "Combo ×{n}",
   "combo.2": "Schön!",
   "combo.3": "Super!",
@@ -97,12 +82,8 @@
   "combo.10": "Perfekt!",
   "fx.last": "Noch einer!",
   "fx.half": "Halbzeit!",
-
   "toast.nothingToUndo": "Nichts zum Rückgängigmachen",
   "toast.cleared": "Neustart. Mit „Zurück“ holst du alles wieder.",
-  "toast.installed": "Installiert! Viel Spaß beim Fliegen.",
-  "toast.resetDone": "Fortschritt gelöscht",
-
   "hint.wrongGlider": "Dieser Schirm steht falsch. Ich nehme ihn weg.",
   "hint.wrongX": "Hier hast du ein × gesetzt, aber genau hier gehört ein Schirm hin.",
   "hint.reveal": "Kniffliger Flug! Hier fliegt sicher ein Schirm.",
@@ -123,7 +104,6 @@
   "hint.probe.row": "Probeflug: Mit einem Schirm hier bliebe für die markierte Reihe später kein Platz.",
   "hint.probe.col": "Probeflug: Mit einem Schirm hier bliebe für die markierte Spalte später kein Platz.",
   "hint.probe.zone": "Probeflug: Mit einem Schirm hier bliebe für die markierte Zone später kein Platz.",
-
   "help.title": "Flugregeln",
   "help.tap": "Tippen",
   "help.tapDesc": "Kreuz setzen oder entfernen",
@@ -132,7 +112,6 @@
   "help.swipe": "Wischen",
   "help.swipeDesc": "viele Kreuze auf einmal",
   "help.go": "Los geht's!",
-
   "win.title.0": "Sanft gelandet!",
   "win.title.1": "Perfekte Thermik!",
   "win.title.2": "Toplandung!",
@@ -159,44 +138,16 @@
   "win.nextDiff": "Neuer Flug · {name}",
   "win.again": "Nochmal",
   "win.menu": "Menü",
-
   "rankup.title": "Neuer Pilotenrang!",
   "rankup.lvl": "Rang {lvl}",
   "rankup.unlocked": "Neu freigeschaltet: <b>{list}</b>",
   "rankup.tap": "Tippen zum Weiterfliegen",
-
   "wind.title": "Abgetrieben!",
   "wind.text": "Der Gegenwind war diesmal stärker. Probier es nochmal oder flieg ohne Zeitlimit weiter, dann aber ohne den Gegenwind-Bonus.",
   "wind.retry": "Nochmal von vorn",
   "wind.continue": "Ohne Gegenwind weiter",
   "wind.menu": "Zum Menü",
-
-  "install.title": "Als App installieren",
-  "install.step1": "Tippe in Safari auf <b>Teilen</b>",
-  "install.shareIcon": "Teilen-Symbol",
-  "install.step2": "Wähle <b>Zum Home-Bildschirm</b>",
-  "install.step3": "Tippe auf <b>Hinzufügen</b>",
-  "install.text": "Dann startet Thermikdoku wie eine App und läuft auch offline.",
-  "install.ok": "Alles klar",
-
   "new.title": "Neu starten?",
   "new.clear": "Brett leeren",
-  "new.other": "Anderes Rätsel",
-
-  "settings.title": "Einstellungen",
-  "settings.sound": "Sound",
-  "settings.music": "Musik",
-  "settings.vibe": "Vibration",
-  "settings.cb": "Farbenblind-Modus",
-  "settings.cbDesc": "Zonen zusätzlich mit Symbolen",
-  "settings.autox": "Automatische ×",
-  "settings.autoxDesc": "Blockierte Felder anzeigen",
-  "settings.lang": "Sprache",
-  "settings.done": "Fertig",
-  "settings.reset": "Fortschritt löschen",
-  "settings.resetConfirm": "Wirklich Statistik und Spielstände löschen?",
-  "settings.coffee": "☕ Gefällt dir Thermikdoku? Spendier mir einen Kaffee",
-
-  "legal.privacy": "Datenschutz",
-  "legal.imprint": "Impressum"
+  "new.other": "Anderes Rätsel"
 }

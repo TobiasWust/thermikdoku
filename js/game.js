@@ -1,7 +1,46 @@
+// Thermikdoku: Spielablauf, Brett, Tipps, Punkte und Ränge.
+// Footer, Einstellungen, Sprache, Rechtliches, Installieren, Audio und Speicher kommen aus dem Kit.
+import Kit from '../kit/kit.js';
 import { generateForDifficulty, DIFFICULTIES, mulberry32, shuffle, createLogicState, placeIn, nextLogicStep } from './puzzle.js';
-import { sfx, setSoundEnabled, setMusicEnabled, setMusic, unlockAudio } from './audio.js';
-import { t, tp, translate, setLang, onLang, pickLang, getLang, fmtNum, fmtList, LANGS } from './i18n.js';
-import { legalHtml } from './legal.js';
+import { SONG, SOUNDS, setMusic } from './audio.js';
+import { t, tp, onLang, fmtNum, fmtList } from './i18n.js';
+
+// ---------- Alter Spielstand ----------
+// Bis zum Umstieg aufs Kit lag alles (auch die Einstellungen) unter „thermikdoku.v2“. Einmalig übernehmen,
+// und zwar vor Kit.init, damit das Kit die Einstellungen gleich richtig anzeigt: Fortschritt nach
+// „thermikdoku:save“ (Kit.store), Einstellungen nach „thermikdoku:settings“. Der alte Eintrag bleibt liegen.
+(function migrateOldSave() {
+  try {
+    const ls = localStorage;
+    if (ls.getItem('thermikdoku:save') != null) return;
+    const old = JSON.parse(ls.getItem('thermikdoku.v2') || 'null');
+    if (!old) return;
+    const { settings: s = {}, ...progress } = old;
+    ls.setItem('thermikdoku:save', JSON.stringify(progress));
+    ls.setItem('thermikdoku:settings', JSON.stringify({
+      // Wer schon gespielt hat, bleibt bei seiner Sprache (früher ohne Wahl: Deutsch)
+      lang: ['de', 'en'].includes(s.lang) ? s.lang : 'de',
+      sfx: s.sound === false ? 0 : 80,
+      music: s.music === false ? 0 : 55,
+      vibration: s.vibe !== false,
+      colorblind: !!s.colorblind,
+      autoX: !!s.autoX,
+    }));
+  } catch {}
+})();
+
+await Kit.init({
+  id: 'thermikdoku',
+  name: 'Thermikdoku',
+  languages: ['de', 'en'],
+  music: SONG,
+  sounds: SOUNDS,
+  extraSettings: [{ key: 'autoX', label: { de: 'Automatische ×', en: 'Automatic ×' }, hint: { de: 'Blockierte Felder anzeigen', en: 'Show blocked cells' }, default: false }],
+  onReset: () => resetProgress(),
+});
+const sfx = Kit.audio.sfx;
+const unlockAudio = () => Kit.audio.unlock();
+const vibe = (p) => Kit.vibrate(p);
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
@@ -100,12 +139,8 @@ const ZEITFLUG_SECONDS = 300;
 const ZEITFLUG_XP = 30;
 
 // ---------- Speicher ----------
-const STORE_KEY = 'thermikdoku.v2';
-// Gab es vor diesem Start schon einen Spielstand? (entscheidet über die Standardsprache)
-const HAD_SAVE = (() => { try { return localStorage.getItem(STORE_KEY) != null || localStorage.getItem('thermikdoku.v1') != null; } catch { return false; } })();
 function defaults() {
   return {
-    settings: { sound: true, music: true, vibe: true, autoX: false, colorblind: false },
     seenHelp: false,
     stats: {},      // diff -> { solved, best, perfect }
     current: {},    // key -> { puzzle, cells, elapsed, hints, mistakes }
@@ -115,31 +150,21 @@ function defaults() {
     zeitflug: { best: 0, runs: 0 },
   };
 }
-const store = (() => {
-  try {
-    const s = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
-    const d = defaults();
-    return { ...d, ...s, settings: { ...d.settings, ...(s.settings || {}) } };
-  } catch { return defaults(); }
-})();
+const store = { ...defaults(), ...(Kit.store.get('save', {}) || {}) };
 // Aufräumen: den Tagesflug gibt es nicht mehr
 delete store.daily;
 for (const k of Object.keys(store.current)) if (k.startsWith('D')) delete store.current[k];
-function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch {} }
-setSoundEnabled(store.settings.sound);
-setMusicEnabled(store.settings.music);
-
-// ---------- Sprache ----------
-// Die Wahl liegt in store.settings.lang. Bestehende Spieler ohne gespeicherte Sprache bleiben bei Deutsch,
-// neue Spieler bekommen Deutsch, wenn ihr Browser Deutsch zuerst nennt, sonst Englisch.
-if (!LANGS.includes(store.settings.lang)) {
-  store.settings.lang = HAD_SAVE ? 'de' : pickLang();
-  save();
-}
-await setLang(store.settings.lang);
+function save() { Kit.store.set('save', store); }
 const statsOf = (d) => (store.stats[d] ||= { solved: 0, best: null, perfect: 0 });
 
-function vibe(p) { if (store.settings.vibe && navigator.vibrate) { try { navigator.vibrate(p); } catch {} } }
+// „Fortschritt löschen“ in den Kit-Einstellungen: Punkte, Statistik und Spielstände weg, Rätselvorrat und Anleitung bleiben
+function resetProgress() {
+  const pool = store.pool;
+  for (const k of Object.keys(store)) delete store[k];
+  Object.assign(store, defaults(), { pool, seenHelp: true });
+  save();
+  if (currentScreen === 'game') show('home'); else renderHome();
+}
 
 // ---------- Hilfsfunktionen ----------
 const fmtTime = (s) => { s = Math.floor(s); const m = Math.floor(s / 60); return `${m}:${String(s % 60).padStart(2, '0')}`; };
@@ -290,9 +315,13 @@ function updateTimer() {
   if (left <= 0 && !G.done && G.cells) timeUp();
 }
 
+const kitDialogOpen = () => !!document.querySelector('dialog.kit-dialog[open]');
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) pauseTimer(); else if (currentScreen === 'game') resumeTimer();
+  if (document.hidden) pauseTimer(); else if (currentScreen === 'game' && !kitDialogOpen()) resumeTimer();
 });
+// Einstellungen, Datenschutz & Co. (Kit-Dialoge) halten die Flugzeit an
+Kit.on('pause', (paused) => { if (paused) pauseTimer(); else if (currentScreen === 'game') resumeTimer(); });
+Kit.on('settings', ({ key }) => { if (key === 'autoX' && G.cells) render(); });
 
 function saveProgress() {
   if (!G.key || !G.cells || G.done) return;
@@ -477,7 +506,7 @@ function render({ initial = false, animate = new Set() } = {}) {
       const want = info.conflict.has(i) ? SPRITE_SCARED : sprite(G.regions[i]);
       if (img && !img.src.endsWith(want)) img.src = want;
     }
-    el.classList.toggle('auto', store.settings.autoX && !G.mods.wolkenflug && !!info.blocked[i]);
+    el.classList.toggle('auto', Kit.settings.autoX && !G.mods.wolkenflug && !!info.blocked[i]);
   }
   // Fortschritt
   const pgs = $$('#progress .pg');
@@ -545,6 +574,7 @@ function cellCenter(i) {
   return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width };
 }
 function burst(x, y, count = 10, colors = SPARK_COLORS, { spread = 70, size = 14 } = {}) {
+  count = Math.round(count * Kit.motion); // weniger Funken bei „Animationen reduzieren“
   const fx = $('#fx');
   for (let k = 0; k < count; k++) {
     const a = (k / count) * Math.PI * 2 + Math.random() * 0.6;
@@ -570,6 +600,7 @@ function popup(text, x, y, { color = '#fff', size = 24 } = {}) {
   setTimeout(() => el.remove(), 1200);
 }
 function quake() {
+  if (Kit.reducedMotion) return;
   const b = $('#board');
   b.classList.remove('quake'); void b.offsetWidth; b.classList.add('quake');
 }
@@ -914,8 +945,8 @@ function celebrate(stars, time, record, xp) {
     el.classList.add('wave');
   });
   board.classList.add('won');
-  // Schirme heben ab
-  setTimeout(() => {
+  // Schirme heben ab (bei reduzierten Animationen bleiben sie sitzen)
+  if (!Kit.reducedMotion) setTimeout(() => {
     const fx = $('#fx');
     G.cellEls.forEach((el, i) => {
       if (G.cells[i] !== 2) return;
@@ -936,6 +967,7 @@ function celebrate(stars, time, record, xp) {
 }
 
 function confetti(amount = 54) {
+  amount = Math.round(amount * Kit.motion);
   const fx = $('#fx');
   const cols = ['#ff5a4e', '#ffd23f', '#3d8bff', '#ff8fc7', '#36c97a', '#8a4dff', '#7ce0ff'];
   for (let k = 0; k < amount; k++) {
@@ -992,7 +1024,7 @@ function showWin(stars, time, record, xp) {
   const totalSolved = Object.values(store.stats).reduce((a, st) => a + (st.solved || 0), 0);
   const kofi = $('#kofi-note');
   kofi.hidden = true;
-  if (!store.kofiShown && totalSolved >= 10) {
+  if (Kit.has('kofi') && !store.kofiShown && totalSolved >= 10) {
     store.kofiShown = true; save();
     kofi.hidden = false;
   }
@@ -1177,13 +1209,6 @@ document.addEventListener('click', (e) => {
     toast(store.mods[m.key] ? t('mod.on', { name: modName(m.key), desc: modDesc(m.key) }) : t('mod.off', { name: modName(m.key) }), store.mods[m.key] ? 'good' : '');
     return;
   }
-  const lb = e.target.closest('[data-lang]');
-  if (lb) {
-    sfx.click();
-    const l = lb.dataset.lang;
-    if (l !== getLang()) { store.settings.lang = l; save(); setLang(l); }
-    return;
-  }
   const b = e.target.closest('[data-action]');
   if (!b) return;
   unlockAudio();
@@ -1214,20 +1239,6 @@ document.addEventListener('click', (e) => {
       if (helpReturn === 'start' && pendingStart) { helpReturn = 'home'; startGame(pendingStart); pendingStart = null; }
       else show(helpReturn === 'start' ? 'home' : helpReturn);
       break;
-    case 'install': install(); break;
-    case 'install-close': closeModal('#modal-install'); break;
-    case 'settings': syncSettings(); openModal('#modal-settings'); break;
-    case 'settings-close': closeModal('#modal-settings'); break;
-    case 'privacy': closeModal('#modal-settings'); openModal('#modal-privacy'); $('#modal-privacy .legal').scrollTop = 0; break;
-    case 'imprint': closeModal('#modal-settings'); openModal('#modal-imprint'); break;
-    case 'legal-close': closeModal('#modal-privacy'); closeModal('#modal-imprint'); break;
-    case 'reset-progress':
-      if (confirm(t('settings.resetConfirm'))) {
-        const s = store.settings, pool = store.pool;
-        Object.assign(store, defaults(), { settings: s, pool, seenHelp: true }); save();
-        closeModal('#modal-settings'); renderHome(); toast(t('toast.resetDone'));
-      }
-      break;
     case 'undo': undo(); break;
     case 'hint': hint(); break;
     case 'reset':
@@ -1240,34 +1251,23 @@ document.addEventListener('click', (e) => {
     case 'new-cancel': closeModal('#modal-new'); break;
     case 'next':
       closeModal('#modal-win');
-      if (G.mode === 'zeitflug') startGame({ mode: 'zeitflug', fresh: true });
-      else startGame({ mode: 'free', diff: G.diff });
+      // Natürliche Pause: in der Store-App ggf. Werbung, auf der Website passiert nichts
+      Kit.ads.break('level-done').then(() => {
+        if (G.mode === 'zeitflug') startGame({ mode: 'zeitflug', fresh: true });
+        else startGame({ mode: 'free', diff: G.diff });
+      });
       break;
-    case 'win-menu': closeModal('#modal-win'); show('home'); break;
+    case 'win-menu': closeModal('#modal-win'); Kit.ads.break('level-done').then(() => show('home')); break;
   }
 });
 function openHelp() { buildHelpExample(); show('help'); }
 
-function syncSettings() {
-  $('#set-sound').checked = store.settings.sound;
-  $('#set-music').checked = store.settings.music;
-  $('#set-vibe').checked = store.settings.vibe;
-  $('#set-autox').checked = store.settings.autoX;
-  $('#set-cb').checked = store.settings.colorblind;
-}
-$('#set-sound').addEventListener('change', (e) => { store.settings.sound = e.target.checked; setSoundEnabled(e.target.checked); save(); if (e.target.checked) sfx.place(); });
-$('#set-music').addEventListener('change', (e) => { store.settings.music = e.target.checked; setMusicEnabled(e.target.checked); save(); unlockAudio(); });
-$('#set-vibe').addEventListener('change', (e) => { store.settings.vibe = e.target.checked; save(); vibe(30); });
-$('#set-cb').addEventListener('change', (e) => { store.settings.colorblind = e.target.checked; save(); applyColorblind(); });
-function applyColorblind() { document.body.classList.toggle('colorblind', !!store.settings.colorblind); }
-applyColorblind();
-$('#set-autox').addEventListener('change', (e) => { store.settings.autoX = e.target.checked; save(); if (G.cells) render(); });
 
 // Doppeltipp-Zoom auf iOS verhindern
 let lastTouch = 0;
 document.addEventListener('touchend', (e) => {
   const now = Date.now();
-  if (now - lastTouch < 350 && !e.target.closest('.help-scroll, .legal')) e.preventDefault();
+  if (now - lastTouch < 350 && !e.target.closest('.help-scroll, .kit-dialog')) e.preventDefault();
   lastTouch = now;
 }, { passive: false });
 
@@ -1352,53 +1352,17 @@ setInterval(applyDaytime, 60000);
 })();
 document.addEventListener('visibilitychange', () => { if (!document.hidden) applyDaytime(); });
 
-// ---------- Als App installieren ----------
-// Chrome, Edge & Co. liefern einen Installier-Dialog; iPhone/iPad brauchen eine Anleitung.
-let installPrompt = null;
-const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-function updateInstall() {
-  const can = !isStandalone() && (!!installPrompt || isIOS());
-  $$('.install-link, .install-btn').forEach((el) => (el.hidden = !can));
-}
-addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installPrompt = e; updateInstall(); });
-addEventListener('appinstalled', () => { installPrompt = null; updateInstall(); toast(t('toast.installed'), 'good'); });
-async function install() {
-  closeModal('#modal-settings');
-  if (installPrompt) {
-    const p = installPrompt;
-    installPrompt = null;
-    p.prompt();
-    try { await p.userChoice; } catch {}
-    updateInstall();
-  } else if (isIOS()) openModal('#modal-install');
-}
-updateInstall();
-
 // ---------- Sprachwechsel ----------
-// Datenschutz und Impressum kommen aus js/legal.js (wie im Kit), mit GoatCounter-Abschnitt
-function renderLegal() {
-  const html = legalHtml(getLang(), 'Thermikdoku', true);
-  for (const id of ['privacy', 'imprint']) {
-    const m = html[id].match(/^<h2>(.*?)<\/h2>([\s\S]*)$/);
-    $(`#${id}-title`).innerHTML = m[1];
-    $(`#${id}-body`).innerHTML = m[2];
-  }
-}
+// Statische Texte übersetzt das Kit (data-i18n), hier nur das Dynamische
 function applyLang() {
-  renderLegal();
   $('#logo img').alt = t('home.logoAlt');
-  $$('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === getLang())));
+  $('meta[name="description"]').setAttribute('content', t('meta.description'));
   renderHome();
   if (G.cells) updateGameSub();
 }
 onLang(applyLang);
 
 // ---------- Start ----------
-localStorage.removeItem('thermikdoku.v1');
 applyLang();
 // Vorrat für alle Stufen im Hintergrund füllen
 ALL_DIFFS.filter(isUnlocked).forEach((d, i) => setTimeout(() => refillPool(d), 400 + i * 300));
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
-}

@@ -1,0 +1,99 @@
+{
+  "version": "1.11.3",
+  "files": [
+    "kit.js",
+    "audio.js",
+    "sprite.js",
+    "legal.js",
+    "kit.css",
+    "sw-core.js",
+    "kit.json",
+    "README.md"
+  ],
+  "changelog": {
+    "1.11.3": {
+      "changes": "Versionszeile in den Einstellungen der App gekürzt: nur noch „Version …“; Build, Werft- und Kit-Version stehen beim Antippen über dem Protokoll",
+      "advice": "optional",
+      "why": "Ruhiger für Spieler, die Angaben zur Fehlersuche bleiben einen Tipp entfernt."
+    },
+    "1.11.2": {
+      "changes": "In der App zeigen die Einstellungen unten Version, Build, Werft- und Kit-Version; Antippen öffnet das Werft-Protokoll (Start, Live-Updates, Werbepausen und warum sie endeten)",
+      "advice": "empfohlen",
+      "why": "So sieht man auf dem Handy, ob ein Live-Update angekommen ist, und kann Fehler wie eine hängende Werbepause nachvollziehen. Auf der Website ändert sich nichts."
+    },
+    "1.11.1": {
+      "changes": "Datenschutz wieder vollständig: Abschnitte „Daten auf deinem Gerät“, „Hosting (Netlify)“ und „Besucherzählung (GoatCounter)“ waren in 1.10/1.11 versehentlich weggefallen. In der App kein Ko-fi-Satz mehr in der Besucherzählung, Spielstand „im Speicher der App“",
+      "advice": "wichtig",
+      "why": "Ohne diese Abschnitte ist die Datenschutzerklärung unvollständig (DSGVO), auf der Website und in der App."
+    },
+    "1.11.0": {
+      "changes": "Android-App aus der Werft (Capacitor): Kit erkennt sie an window.Werft. Kit.ads.break() zeigt dort AdMob-Interstitials (über werft.js), in den Einstellungen gibt es „Werbung entfernen – 1,99 €“, „Käufe wiederherstellen“ und „Datenschutz-Einstellungen (Werbung)“, kein Service Worker in der App. Datenschutztext nennt AdMob und den Kauf nur in der App. Der Web-Ersatz mit AdSense aus 1.10 entfällt",
+      "advice": "empfohlen",
+      "why": "Nötig für Spiele, die als App in Google Play gehen. Auf der Website und auf games.wust.dev ändert sich nichts: keine Werbung, kein Kauf-Knopf."
+    },
+    "1.10.0": {
+      "changes": "App-Modus für den Play Store: Startet das Spiel als Android-App (TWA, ?app=play), blendet das Kit Ko-fi und „Als App installieren“ aus, zählt Aufrufe getrennt unter /<id>/app/ und zeigt einen passenden Datenschutztext; Datenschutz/Impressum per #privacy bzw. #imprint direkt verlinkbar. Neu: await Kit.ads.break(name) für Werbepausen, die nur in der App und nur mit Werbe-Einstellung (play.json) etwas tun",
+      "advice": "empfohlen",
+      "why": "Nötig, bevor ein Spiel in den Play Store geht: Ein Spendenlink in der App verstößt gegen die Zahlungsrichtlinie von Google Play. Auf der Website ändert sich nichts."
+    },
+    "1.9.0": {
+      "changes": "Kit.init({ sounds }) kann die fertigen Effekte (click, toggle, pop, good, bad, whoosh, combo, win, lose) unter ihrem Namen ersetzen; die Argumente alter Aufrufe wirken weiter (pop(pitch), combo(n) steigt, toggle(false) tiefer)",
+      "advice": "empfohlen",
+      "why": "So bekommt jedes Spiel eigene, passende Klänge, ohne dass Aufrufe im Code geändert werden müssen. Im Sound-Tab der Factory lassen sich die Standard-Klänge pro Spiel mit Reglern anpassen. Ohne eigene Klänge ändert sich nichts."
+    },
+    "1.8.0": {
+      "changes": "Kit.sprite: baseHeight in der Figuren-Übersicht (fester Maßstab pro Figur, von assetgen mit fit \"character\"): height meint dann die Höhe des Standard-Frames, Bewegungen mit höheren Frames werden passend größer gezeichnet statt geschrumpft",
+      "advice": "optional",
+      "why": "Nur nötig, wenn Figuren-Animationen mit festem Maßstab geschnitten werden. Ohne baseHeight ändert sich nichts."
+    },
+    "1.7.0": {
+      "changes": "Kit.audio.music.track(url, { loopStart, loopEnd }): nahtlose Schleife innerhalb einer Musikdatei, der Teil davor läuft einmal als Intro (Werte aus <name>.json von assetgen)",
+      "advice": "optional",
+      "why": "Nur für Spiele mit Musikdateien, die endlos laufen sollen. Ohne die Angaben ändert sich nichts."
+    },
+    "1.6.0": {
+      "changes": "Kit.audio.music.track(url): Musikdateien (z.B. Titelthemen von Lyria) mit Überblendung statt der Synth-Musik, die solange pausiert; track(null) zurück",
+      "advice": "optional",
+      "why": "Nur nötig, wenn ein Spiel echte Musikaufnahmen bekommen soll. Ohne Musikdateien ändert sich nichts."
+    },
+    "1.5.0": {
+      "changes": "Kit.sprite: gemalte Animationen (Streifen + JSON, z.B. von imagegen) laden, abspielen (Schleife, einmalig mit onEnd, Tempo, nach Fortschritt), am Fußpunkt zeichnen und als CSS-Element für Menüs; „Animationen reduzieren“ wird berücksichtigt",
+      "advice": "optional",
+      "why": "Nur für Spiele mit gemalten Figuren-Animationen: Statt eigener Frame-Rechnung im Spiel gibt es einen einheitlichen, getesteten Player. Ohne solche Animationen ändert sich nichts."
+    },
+    "1.4.1": {
+      "changes": "Audio ruckelt nicht mehr, wenn viel auf einmal passiert: ein gemeinsamer Hall statt zwei (etwa zwei Drittel weniger Grundlast auf dem Audio-Thread), Klänge aus demselben Moment starten exakt gemeinsam und leicht voraus geplant, höchstens 32 Effekt-Stimmen gleichzeitig, beendete Stimmen werden vollständig abgebaut",
+      "advice": "wichtig",
+      "why": "Bei vielen gleichzeitigen Effekten (Combos, Gewinn-Fanfaren) gab es vor allem auf Handys Aussetzer und abgehackte kurze Klänge. Der Klang selbst bleibt gleich, alle Aufrufe auch."
+    },
+    "1.4.0": {
+      "changes": "Gemeinsame Besucherzählung: Alle Spiele melden standardmäßig an karakurigames.goatcounter.com (Aufrufe unter /<id>/), Klicks auf „Kaffee spendieren“ zählen als Ereignis kofi/<id>/<footer|settings>; Datenschutztext erwähnt beides. goatcounter:false schaltet ab",
+      "advice": "empfohlen",
+      "why": "Du siehst an einer Stelle, wie oft jedes Spiel gespielt wird und aus welchem Spiel Leute zu Ko-fi gehen. Am Spiel selbst ändert sich nichts."
+    },
+    "1.3.0": {
+      "changes": "Kit-Audio 2: Instrumente (FM, Filter, Unisono, Drums), Hall und Echo, Effekt-Generator Kit.audio.fx() mit Presets, eigene Effekte über Kit.init({ sounds }), komponierte Songs mit Abschnitten und Intensität; die generierte Musik hat jetzt Akkorde, Bass, Motiv und Drums",
+      "advice": "empfohlen",
+      "why": "Musik und Effekte klingen deutlich voller und lebendiger, ohne Änderung am Spiel: bestehende Aufrufe wie sfx.pop() oder music: { mood } bleiben gleich. Danach kann der Agent dem Spiel eigene Klänge und einen eigenen Song geben."
+    },
+    "1.2.0": {
+      "changes": "Farbenblind-Modus und „Animationen reduzieren“ abschaltbar (Kit.init: colorblind:false, reduceMotion:false), wenn sie im Spiel nichts bewirken würden",
+      "advice": "optional",
+      "why": "Das Update allein ändert nichts Sichtbares. Danach kann der Agent die Schalter für Farbenblind-Modus oder „Animationen reduzieren“ ausblenden, wenn sie in diesem Spiel nichts bewirken.",
+      "fixesChecks": [
+        "cb-code",
+        "motion-code"
+      ]
+    },
+    "1.1.0": {
+      "changes": "Installieren-Knopf standardmäßig sichtbar (Footer und Einstellungen); ohne Browser-Angebot erscheint eine Anleitung für iOS, macOS-Safari oder das Browser-Menü",
+      "advice": "empfohlen",
+      "why": "Spieler finden den Weg, das Spiel als App zu installieren, auch auf dem iPhone."
+    },
+    "1.0.0": {
+      "changes": "Erste Version: Footer, Einstellungen (Sprache, Musik, Effekte, Vibration, Farbenblind, Animationen reduzieren), Datenschutz, Impressum, Installieren, Offline, Audio mit generativer Musik",
+      "advice": "wichtig",
+      "why": "Grundlage für Footer, Einstellungen und Offline-Betrieb."
+    }
+  }
+}

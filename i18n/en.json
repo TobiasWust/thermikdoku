@@ -1,14 +1,10 @@
 {
   "meta.title": "Thermikdoku",
   "meta.description": "A kawaii logic puzzle with paragliders – one glider per row, column and thermal zone. No ads.",
-
   "common.back": "Back",
   "common.cancel": "Cancel",
-  "common.close": "Close",
-
   "home.help": "How to play",
   "home.rank": "Pilot rank",
-  "home.settings": "Settings",
   "home.logoAlt": "Paraglider pilot",
   "home.subtitle": "One glider per row, column and zone.<br>Don't collide!",
   "home.choose": "Choose your flight",
@@ -20,10 +16,6 @@
   "home.lockedInfo.one": "From rank {lvl} · {n} point to go",
   "home.lockedInfo.other": "From rank {lvl} · {n} points to go",
   "home.modRank": "Rank {lvl}",
-
-  "footer.install": "📲 Install as app",
-  "footer.coffee": "☕ Buy me a coffee",
-
   "diff.leicht": "Easy",
   "diff.mittel": "Medium",
   "diff.schwer": "Hard",
@@ -34,7 +26,6 @@
   "place.schwer": "Alpine Pass",
   "place.experte": "Himalayas",
   "place.expedition": "Karakoram",
-
   "rank.0": "Student Pilot",
   "rank.1": "Hopper",
   "rank.2": "Thermal Sniffer",
@@ -47,10 +38,8 @@
   "rank.line": "{name} · Rank {lvl}",
   "rank.toast.one": "{name}: {n} point to rank {next}",
   "rank.toast.other": "{name}: {n} points to rank {next}",
-
   "unlock.need.one": "{name} unlocks at rank {lvl}: {n} point to go",
   "unlock.need.other": "{name} unlocks at rank {lvl}: {n} points to go",
-
   "zeitflug.name": "Time Trial",
   "zeitflug.duration": "5 minutes",
   "zeitflug.locked": "🔒 from rank {lvl}",
@@ -59,7 +48,6 @@
   "zeitflug.done": "{n} done",
   "zeitflug.popup": "{n} done!",
   "zeitflug.aborted": "Time Trial cancelled",
-
   "mod.wolkenflug.name": "Cloud Flight",
   "mod.wolkenflug.desc": "No crosses, just gliders",
   "mod.ohnetipps.name": "No Hints",
@@ -68,7 +56,6 @@
   "mod.gegenwind.desc": "Time limit: your best time ×{f}",
   "mod.on": "{name} on: {desc}",
   "mod.off": "{name} off",
-
   "game.flightNo": "Flight #{n} · {place}",
   "game.extras": "Extras",
   "game.rules": "Rules",
@@ -79,12 +66,10 @@
   "tools.undo": "Undo",
   "tools.hint": "Hint",
   "tools.reset": "New",
-
   "conflict.touch": "Collision alert! Gliders must not touch.",
   "conflict.row": "Two gliders in one row!",
   "conflict.col": "Two gliders in one column!",
   "conflict.zone": "Two gliders in one zone!",
-
   "combo.label": "Combo ×{n}",
   "combo.2": "Nice!",
   "combo.3": "Super!",
@@ -97,12 +82,8 @@
   "combo.10": "Perfect!",
   "fx.last": "One more!",
   "fx.half": "Halfway!",
-
   "toast.nothingToUndo": "Nothing to undo",
   "toast.cleared": "Fresh start. Tap “Undo” to bring it all back.",
-  "toast.installed": "Installed! Happy flying.",
-  "toast.resetDone": "Progress deleted",
-
   "hint.wrongGlider": "This glider is in the wrong spot. I'll take it away.",
   "hint.wrongX": "You put an × here, but this is exactly where a glider belongs.",
   "hint.reveal": "Tricky flight! A glider definitely flies here.",
@@ -123,7 +104,6 @@
   "hint.probe.row": "Test flight: with a glider here, the marked row would run out of room later.",
   "hint.probe.col": "Test flight: with a glider here, the marked column would run out of room later.",
   "hint.probe.zone": "Test flight: with a glider here, the marked zone would run out of room later.",
-
   "help.title": "Flight rules",
   "help.tap": "Tap",
   "help.tapDesc": "Set or remove a cross",
@@ -132,7 +112,6 @@
   "help.swipe": "Swipe",
   "help.swipeDesc": "Lots of crosses at once",
   "help.go": "Let's fly!",
-
   "win.title.0": "Soft landing!",
   "win.title.1": "Perfect thermals!",
   "win.title.2": "Top landing!",
@@ -159,44 +138,16 @@
   "win.nextDiff": "New flight · {name}",
   "win.again": "Again",
   "win.menu": "Menu",
-
   "rankup.title": "New pilot rank!",
   "rankup.lvl": "Rank {lvl}",
   "rankup.unlocked": "Newly unlocked: <b>{list}</b>",
   "rankup.tap": "Tap to keep flying",
-
   "wind.title": "Blown off course!",
   "wind.text": "The headwind was stronger this time. Try again, or keep flying without a time limit – but then without the headwind bonus.",
   "wind.retry": "Start over",
   "wind.continue": "Continue without headwind",
   "wind.menu": "Back to menu",
-
-  "install.title": "Install as app",
-  "install.step1": "In Safari, tap <b>Share</b>",
-  "install.shareIcon": "Share icon",
-  "install.step2": "Choose <b>Add to Home Screen</b>",
-  "install.step3": "Tap <b>Add</b>",
-  "install.text": "Thermikdoku then launches like an app and works offline, too.",
-  "install.ok": "Got it",
-
   "new.title": "Start over?",
   "new.clear": "Clear board",
-  "new.other": "Different puzzle",
-
-  "settings.title": "Settings",
-  "settings.sound": "Sound",
-  "settings.music": "Music",
-  "settings.vibe": "Vibration",
-  "settings.cb": "Colorblind mode",
-  "settings.cbDesc": "Zones also get symbols",
-  "settings.autox": "Automatic ×",
-  "settings.autoxDesc": "Show blocked cells",
-  "settings.lang": "Language",
-  "settings.done": "Done",
-  "settings.reset": "Delete progress",
-  "settings.resetConfirm": "Really delete all stats and saved games?",
-  "settings.coffee": "☕ Enjoying Thermikdoku? Buy me a coffee",
-
-  "legal.privacy": "Privacy",
-  "legal.imprint": "Legal notice"
+  "new.other": "Different puzzle"
 }

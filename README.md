@@ -50,14 +50,14 @@ Dann http://localhost:8765 öffnen.
 |---|---|
 | `js/puzzle.js` | Rätsel-Generator, Logik-Löser und Schwierigkeitsbewertung |
 | `js/worker.js` | Erzeugt Rätsel im Hintergrund |
-| `js/app.js` | Spiel, Oberfläche, Tipps und Belohnungen |
-| `js/audio.js` | Sounds per WebAudio |
-| `js/i18n.js`, `i18n/*.json` | Übersetzungen (Format wie im Kit: flache Schlüssel, `{platzhalter}`, `data-i18n`) |
-| `js/legal.js` | Datenschutz und Impressum auf Deutsch und Englisch |
+| `js/game.js` | Spiel, Oberfläche, Tipps und Belohnungen |
+| `js/audio.js` | Musik und Klänge (laufen über `Kit.audio`) |
+| `js/i18n.js`, `i18n/*.json` | Übersetzungen über das Kit, dazu Zahlen, Mehrzahl und Aufzählungen |
+| `kit/` | Karakuri-Kit (nicht bearbeiten, kommt per Kit-Update): Footer, Einstellungen, Datenschutz, Impressum, Installieren, Offline, Audio, Speicher, Werbepausen in der Store-App |
 | `scripts/check-i18n.mjs` | Prüft, dass `de.json` und `en.json` dieselben Schlüssel haben und alle benutzten Schlüssel existieren |
 | `css/style.css` | Stil und Animationen |
 | `assets/` | Grafiken (Originale in `assets/src/`) |
-| `sw.js`, `manifest.webmanifest` | Offline-Modus und Installation |
+| `sw.js`, `manifest.webmanifest` | Offline-Modus (über `kit/sw-core.js`) und Installation |
 
 ---
 

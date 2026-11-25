@@ -1,4 +1,3 @@
-// Audio-Engine aus dem Karakuri-Kit 1.4.1 (kit/audio.js), unverändert kopiert. Klänge und Musik dieses Spiels stehen in js/audio.js.
 // Kit-Audio 2: WebAudio ohne Dateien. Zwei Busse (Musik, Effekte) mit eigener Lautstärke,
 // gemeinsamer Hall und Echo, Instrumente (Subtraktiv, FM, Unisono, Drums), ein Effekt-Generator
 // im Stil von sfxr und ein kleiner Sequenzer für komponierte oder generierte Musik.
@@ -74,6 +73,9 @@ function rng(seed = Math.random() * 1e9) {
 
 export function createAudio(getSettings, musicOpts = {}, sounds = null) {
   let ctx = null, master, duck, duckWet, noiseBuf = null, hidden = false;
+  let synthOut = null; // Pegel der Synth-Musik (wird beim Wechsel zu einer Musikdatei ausgeblendet)
+  const file = { url: null, src: null, gain: null, wantUrl: null, opts: {} }; // laufende Musikdatei
+  const fileCache = new Map();
   const sends = {}; // pro Bus: { verb, echo } Eingänge
   const waves = {}, curves = {};
   const vol = (v) => Math.pow(Math.max(0, Math.min(100, v)) / 100, 2);
@@ -94,6 +96,7 @@ export function createAudio(getSettings, musicOpts = {}, sounds = null) {
       const musicBus = ctx.createGain();
       duck = ctx.createGain(); musicBus.connect(duck).connect(master);
       api.ctx = ctx; api.sfxBus = sfxBus; api.musicBus = musicBus;
+      synthOut = ctx.createGain(); synthOut.connect(musicBus);
       // Ein gemeinsamer Hall für beide Busse (der Faltungshall ist der teuerste Teil des Graphen).
       // Jeder Bus schickt über einen eigenen Pegel hinein, der seiner Lautstärke folgt.
       const conv = ctx.createConvolver();
@@ -494,14 +497,23 @@ export function createAudio(getSettings, musicOpts = {}, sounds = null) {
       [67, 63, 60, 55].forEach((n, i) => play('epiano', { note: n, dur: 0.35, delay: i * 0.15, vel: 0.25, verb: 0.35 }));
       play('subBass', { note: 43, dur: 0.6, delay: 0.45, vel: 0.2 });
     },
-    /** Eigene Effekte registrieren: { name: fx-Parameter | Funktion } → Kit.audio.sfx.name(opts) */
+    /** Eigene Effekte registrieren: { name: fx-Parameter | Funktion } → Kit.audio.sfx.name(opts).
+     * Ein Name eines fertigen Effekts (click, pop, good, combo …) ersetzt ihn im ganzen Spiel. Die Argumente
+     * der alten Aufrufe wirken weiter: pop(pitch) als Tonhöhe, combo(n) steigt mit n, toggle(false) klingt tiefer. */
     add(map) {
       for (const [name, def] of Object.entries(map || {})) {
         if (name === 'add') continue;
-        sfx[name] = typeof def === 'function' ? def : (opts) => fx(def, opts);
+        sfx[name] = typeof def === 'function' ? def : (arg) => fx(def, fxOpts(name, arg));
       }
     },
   };
+  // Argument eines sfx-Aufrufs in fx-Optionen übersetzen (Objekt bleibt, Zahl ist Tonhöhe)
+  function fxOpts(name, arg) {
+    if (arg && typeof arg === 'object') return arg;
+    if (name === 'combo') return { pitch: Math.pow(2, COMBO[Math.min(Math.max((arg ?? 2) - 2, 0), COMBO.length - 1)] / 12) };
+    if (name === 'toggle') return { pitch: arg === false ? 0.75 : 1 };
+    return typeof arg === 'number' ? { pitch: arg } : {};
+  }
   if (sounds) sfx.add(sounds);
 
   // ---------- Musik: Sequenzer ----------
@@ -531,16 +543,75 @@ export function createAudio(getSettings, musicOpts = {}, sounds = null) {
     tempo(bpm) { if (cur) cur.bpm = bpm; mo.bpm = bpm; syncEcho(); },
     start() {
       music.wanted = true;
-      if (!ctx || music.playing || getSettings().music <= 0) return;
+      if (!ctx || music.playing || getSettings().music <= 0 || file.wantUrl) return;
       if (!cur) load(isSong(mo) ? mo : generate(mo));
       if (pending) swap();
       music.playing = true; music.next = ctx.currentTime + 0.1; music.step = 0;
+      if (synthOut) synthOut.gain.setTargetAtTime(1, ctx.currentTime, 0.05);
       clearInterval(music.timer);
       music.timer = setInterval(schedule, 25);
     },
-    stop() { music.wanted = false; music.pause(); },
+    stop() { music.wanted = false; music.pause(); stopFile(0.3); file.wantUrl = null; },
     pause() { clearInterval(music.timer); music.playing = false; },
+    /**
+     * Musikdatei statt Synth-Musik spielen (z.B. ein Titelthema aus assets/music/…m4a), mit Überblendung.
+     * music.track(null) kehrt zur Synth-Musik zurück. o: { loop = true, fade = 1.2 (s), vol = 1,
+     *   loopStart, loopEnd (s): nahtlose Schleife im Stück, der Teil davor läuft einmal als Intro }
+     */
+    track(url, o = {}) {
+      file.wantUrl = url || null;
+      file.opts = { loop: true, fade: 1.2, vol: 1, ...o };
+      if (!ctx) return Promise.resolve(); // spielt nach dem ersten Antippen (unlock)
+      return playFile();
+    },
+    get file() { return file.url; },
   };
+
+  async function loadFile(url) {
+    if (!fileCache.has(url)) {
+      fileCache.set(url, fetch(url).then((r) => {
+        if (!r.ok) throw new Error(`Kit.audio: ${url} nicht gefunden (${r.status})`);
+        return r.arrayBuffer();
+      }).then((b) => ctx.decodeAudioData(b)));
+    }
+    return fileCache.get(url);
+  }
+
+  function stopFile(fade) {
+    if (!file.src || !ctx) { file.url = null; return; }
+    const { src, gain } = file;
+    gain.gain.setTargetAtTime(0, ctx.currentTime, Math.max(0.01, fade / 3));
+    setTimeout(() => { try { src.stop(); } catch {} gain.disconnect(); }, fade * 1000 + 200);
+    file.src = file.gain = file.url = null;
+  }
+
+  async function playFile() {
+    const url = file.wantUrl, { loop, fade, vol: v } = file.opts;
+    if (!url) { // zurück zur Synth-Musik
+      stopFile(fade);
+      if (music.wanted) music.start();
+      return;
+    }
+    if (file.url === url) return;
+    let buf;
+    try { buf = await loadFile(url); } catch (e) { console.warn(e.message); file.wantUrl = null; if (music.wanted) music.start(); return; }
+    if (file.wantUrl !== url) return; // inzwischen anders entschieden
+    stopFile(fade);
+    const src = ctx.createBufferSource(), gain = ctx.createGain();
+    src.buffer = buf; src.loop = loop;
+    const { loopStart, loopEnd } = file.opts;
+    if (loop && loopEnd > (loopStart || 0) && loopEnd <= buf.duration) { src.loopStart = loopStart || 0; src.loopEnd = loopEnd; }
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    // Musikdateien (auf -18 LUFS angeglichen, z.B. von imagegen) etwa so laut wie die Synth-Musik
+    gain.gain.setTargetAtTime(v * 2.2, ctx.currentTime, Math.max(0.01, fade / 3));
+    src.connect(gain).connect(api.musicBus);
+    src.start();
+    src.onended = () => { if (file.src === src) { file.src = file.gain = file.url = null; file.wantUrl = null; if (music.wanted) music.start(); } };
+    Object.assign(file, { url, src, gain });
+    // Synth leise machen und danach anhalten (spart Akku)
+    if (synthOut) synthOut.gain.setTargetAtTime(0, ctx.currentTime, Math.max(0.01, fade / 3));
+    setTimeout(() => { if (file.url === url) music.pause(); }, fade * 1000 + 100);
+  }
 
   function load(def) {
     const song = parseSong(def);
@@ -554,7 +625,7 @@ export function createAudio(getSettings, musicOpts = {}, sounds = null) {
       tr.node = ctx.createGain();
       tr.target = (tr.level || 0) <= intensity + 1e-6 ? 1 : 0;
       tr.node.gain.value = tr.target * tr.vol;
-      tr.node.connect(api.musicBus);
+      tr.node.connect(synthOut || api.musicBus);
       if (tr.verb) { const g = ctx.createGain(); g.gain.value = tr.verb; tr.node.connect(g).connect(sends.music.verb); }
       if (tr.echo) { const g = ctx.createGain(); g.gain.value = tr.echo; tr.node.connect(g).connect(sends.music.echo); }
     }
@@ -763,7 +834,7 @@ export function createAudio(getSettings, musicOpts = {}, sounds = null) {
         g.setTargetAtTime(1, t + time * 0.4, time / 3);
       }
     },
-    unlock() { ac(); if (music.wanted) music.start(); },
+    unlock() { ac(); if (file.wantUrl && !file.url) playFile(); else if (music.wanted) music.start(); },
     update,
     setHidden(h) {
       hidden = h;

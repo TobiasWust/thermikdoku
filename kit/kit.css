@@ -1,0 +1,123 @@
+/* Games Factory Kit – Stil für Footer, Einstellungen, Dialoge, Toasts.
+   Spiele passen das Aussehen über diese Variablen an (in :root überschreiben). */
+:root {
+  --kit-ink: #3b2a4a;
+  --kit-ink-soft: #7a6a8a;
+  --kit-card: #ffffff;
+  --kit-accent: #7c5cff;
+  --kit-accent-ink: #ffffff;
+  --kit-good: #2fbf71;
+  --kit-bad: #e5484d;
+  --kit-radius: 22px;
+  --kit-line: 3px solid var(--kit-ink);
+  --kit-pop: 0 5px 0 var(--kit-ink);
+  --kit-font: ui-rounded, "SF Pro Rounded", "Nunito", "Varela Round", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --kit-motion: 1;
+}
+
+/* ---------- Animationen reduzieren ----------
+   Spiele nutzen zusätzlich Kit.reducedMotion / Kit.motion in JS (Partikel, Wackeln, Kamera). */
+.kit-reduce-motion *, .kit-reduce-motion *::before, .kit-reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  animation-delay: 0s !important;
+  transition-delay: 0s !important;
+  transition-duration: 0.12s !important;
+  scroll-behavior: auto !important;
+}
+.kit-reduce-motion .kit-keep-motion, .kit-reduce-motion .kit-keep-motion * { animation-duration: revert !important; animation-iteration-count: revert !important; }
+
+/* ---------- Sprites (Kit.sprite … .el()) ----------
+   Streifen per CSS abspielen. Bei „Animationen reduzieren“ endet die Animation sofort: erstes Frame bleibt stehen. */
+.kit-sprite {
+  display: inline-block; width: var(--w); height: var(--h);
+  background: var(--img) 0 0 / calc(var(--w) * var(--n)) var(--h) no-repeat;
+  animation: kit-sprite var(--dur) steps(var(--n)) var(--loop);
+}
+@keyframes kit-sprite { to { background-position-x: calc(var(--w) * var(--n) * -1); } }
+
+/* ---------- Footer ---------- */
+.kit-footer { text-align: center; font: 700 13px/1.5 var(--kit-font); color: var(--kit-ink-soft); padding: 10px 12px calc(env(safe-area-inset-bottom, 0px) + 10px); }
+.kit-footer p { margin: 2px 0; }
+.kit-footer a, .kit-footer button, .kit-settings-legal a, .kit-settings-legal button {
+  color: inherit; font: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+}
+.kit-footer-legal { font-size: 12px; }
+.kit-heart { display: inline-block; animation: kit-beat 1.4s ease-in-out infinite; }
+@keyframes kit-beat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.25); } 30% { transform: scale(1); } 45% { transform: scale(1.15); } }
+
+/* ---------- Zahnrad ---------- */
+.kit-gear { width: 46px; height: 46px; border-radius: 16px; display: grid; place-items: center; background: var(--kit-card); color: var(--kit-ink); border: var(--kit-line); box-shadow: 0 3px 0 var(--kit-ink); cursor: pointer; }
+.kit-gear:active { transform: translateY(3px); box-shadow: none; }
+.kit-gear-floating { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 12px); right: 12px; z-index: 50; }
+.kit-gear svg { transition: transform .4s; }
+.kit-gear:hover svg { transform: rotate(60deg); }
+
+/* ---------- Dialoge ---------- */
+.kit-dialog { border: 0; padding: 0; background: transparent; max-width: min(420px, calc(100vw - 24px)); width: 100%; max-height: calc(100dvh - 24px); overflow: visible; color: var(--kit-ink); }
+.kit-dialog::backdrop { background: rgba(20, 10, 40, .45); backdrop-filter: blur(3px); }
+.kit-dialog[open] { animation: kit-pop-in .28s cubic-bezier(.2, 1.4, .4, 1); }
+.kit-dialog[open]::backdrop { animation: kit-fade .2s ease-out; }
+@keyframes kit-pop-in { from { transform: scale(.85) translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes kit-fade { from { opacity: 0; } }
+.kit-card {
+  background: var(--kit-card); border: var(--kit-line); border-radius: var(--kit-radius); box-shadow: var(--kit-pop);
+  padding: 20px 18px 16px; display: flex; flex-direction: column; gap: 10px; font: 700 15px/1.4 var(--kit-font);
+  max-height: calc(100dvh - 40px); overflow: auto;
+}
+.kit-card h2 { margin: 0 0 4px; text-align: center; font-size: 22px; }
+.kit-card p { margin: 0; }
+.kit-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 4px 2px; }
+.kit-row > span { display: flex; flex-direction: column; }
+.kit-row small { font-size: 12px; color: var(--kit-ink-soft); font-weight: 600; }
+.kit-select { font: inherit; padding: 6px 10px; border: var(--kit-line); border-radius: 12px; background: var(--kit-card); color: var(--kit-ink); }
+.kit-slider > span { min-width: 7.2em; }
+.kit-slider input[type=range] { flex: 1; min-width: 0; accent-color: var(--kit-accent); height: 28px; }
+.kit-slider output { width: 2.4em; text-align: right; font-variant-numeric: tabular-nums; color: var(--kit-ink-soft); }
+
+.kit-toggle { cursor: pointer; }
+.kit-toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.kit-toggle i { flex-shrink: 0; width: 52px; height: 30px; border-radius: 99px; border: var(--kit-line); background: #ddd6e8; position: relative; transition: background .2s; }
+.kit-toggle i::after { content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 2px solid var(--kit-ink); transition: transform .25s cubic-bezier(.3, 1.5, .5, 1); }
+.kit-toggle input:checked + i { background: var(--kit-good); }
+.kit-toggle input:checked + i::after { transform: translateX(22px); }
+.kit-toggle input:focus-visible + i { outline: 3px solid var(--kit-accent); outline-offset: 2px; }
+
+.kit-btn { font: 800 17px/1 var(--kit-font); padding: 14px 16px; border-radius: 16px; border: var(--kit-line); box-shadow: 0 4px 0 var(--kit-ink); cursor: pointer; color: var(--kit-ink); background: var(--kit-card); }
+.kit-btn:active { transform: translateY(4px); box-shadow: none; }
+.kit-btn-primary { background: var(--kit-accent); color: var(--kit-accent-ink); }
+.kit-link-btn { background: none; border: 0; font: 700 13px var(--kit-font); color: var(--kit-ink-soft); text-decoration: underline; cursor: pointer; padding: 6px; }
+.kit-settings-legal { text-align: center; font-size: 12px; color: var(--kit-ink-soft); margin-top: 4px !important; }
+.kit-app-info { font-weight: 600; font-size: 11px; text-decoration: none; opacity: .8; }
+.kit-app-log { margin: 0; flex-shrink: 0; max-height: 180px; overflow: auto; padding: 8px; border-radius: 10px; background: rgba(0,0,0,.06); font: 11px/1.45 ui-monospace, monospace; white-space: pre-wrap; word-break: break-word; text-align: left; color: var(--kit-ink-soft); }
+.kit-kofi { display: inline-block; margin-top: 4px; }
+.kit-install-steps { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+
+.kit-legal-card { max-width: 560px; }
+.kit-legal { font-weight: 500; font-size: 14px; line-height: 1.55; }
+.kit-legal h3 { font-size: 15px; margin: 14px 0 4px; }
+.kit-legal p, .kit-legal ul { margin: 0 0 8px; }
+.kit-legal-meta { color: var(--kit-ink-soft); font-size: 12px; text-align: center; }
+.kit-legal a { color: var(--kit-accent); }
+
+/* ---------- Toast ---------- */
+.kit-toast {
+  position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); transform: translate(-50%, 30px); opacity: 0; pointer-events: none;
+  background: var(--kit-ink); color: #fff; font: 800 15px var(--kit-font); padding: 12px 18px; border-radius: 99px; z-index: 1000; transition: opacity .2s, transform .3s cubic-bezier(.2, 1.4, .4, 1);
+}
+.kit-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.kit-toast.good { background: var(--kit-good); }
+.kit-toast.bad { background: var(--kit-bad); }
+
+/* ---------- Farbenblind: Hilfsklassen für Muster ---------- */
+.kit-colorblind .kit-pattern-0 { background-image: none; }
+.kit-colorblind .kit-pattern-1 { background-image: repeating-linear-gradient(45deg, rgba(0,0,0,.25) 0 3px, transparent 3px 8px); }
+.kit-colorblind .kit-pattern-2 { background-image: radial-gradient(rgba(0,0,0,.3) 1.5px, transparent 2px); background-size: 7px 7px; }
+.kit-colorblind .kit-pattern-3 { background-image: repeating-linear-gradient(0deg, rgba(0,0,0,.25) 0 3px, transparent 3px 8px); }
+.kit-colorblind .kit-pattern-4 { background-image: repeating-linear-gradient(-45deg, rgba(0,0,0,.25) 0 3px, transparent 3px 8px); }
+.kit-colorblind .kit-pattern-5 { background-image: repeating-linear-gradient(90deg, rgba(0,0,0,.25) 0 3px, transparent 3px 8px); }
+.kit-cb-only { display: none !important; }
+.kit-colorblind .kit-cb-only { display: revert !important; }
+
+/* Play-Store-App (Kit.app): kein Ko-fi, nichts zu installieren */
+.kit-app .kit-no-app { display: none !important; }

@@ -1,8 +1,6 @@
-// Klänge und Musik für Thermikdoku – alles live per WebAudio, keine Dateien.
-// Die Engine (Instrumente, Effekt-Generator, Sequenzer) liegt in synth.js.
-import { createAudio } from './synth.js';
-
-const settings = { sfx: 80, music: 55 };
+// Klänge und Musik für Thermikdoku – alles live per WebAudio über das Kit (Kit.audio), keine Dateien.
+// SONG und SOUNDS gehen an Kit.init; die Effekte spielt das Spiel als Kit.audio.sfx.<name>().
+import Kit from '../kit/kit.js';
 
 // ---------- Musik: ruhig und luftig, aufsteigende Arpeggien wie Thermik ----------
 // D-Dur mit lydischer Farbe: Dmaj7 – Bm7 – Gmaj7(#11) – Asus
@@ -31,7 +29,7 @@ Object.assign(patterns, {
   air: { shaker: '....x.......x..o' },
 });
 
-const SONG = {
+export const SONG = {
   bpm: 80, swing: 0.08,
   tracks: {
     pad: { inst: 'pad', vol: 0.9 },
@@ -53,23 +51,13 @@ const SONG = {
   autostart: true,
 };
 
-const A = createAudio(() => settings, SONG);
-document.addEventListener('visibilitychange', () => A.setHidden(document.hidden));
-
-export function setSoundEnabled(v) { settings.sfx = v ? 80 : 0; A.update(); }
-export function setMusicEnabled(v) {
-  settings.music = v ? 55 : 0;
-  if (!v) A.music.pause();
-  A.update();
-}
-export function unlockAudio() { A.unlock(); }
 /** Abschnitt der Musik: 'menu' oder 'play' (wechselt am Taktende) */
-export function setMusic(section) { if (A.music.current !== section) A.music.section(section); }
+export function setMusic(section) { if (Kit.audio.music.current !== section) Kit.audio.music.section(section); }
 
 const PENTA = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24, 26];
-const fx = A.fx, play = A.play;
+const fx = (p, o) => Kit.audio.fx(p, o), play = (i, o) => Kit.audio.play(i, o);
 
-export const sfx = {
+export const SOUNDS = {
   // × setzen: leises Holzklacken
   mark() { play('block', { f: 1250 + Math.random() * 150, vel: 0.45 }); },
   // Schirm setzen: Luftzug und ein aufsteigender Ton
@@ -87,9 +75,10 @@ export const sfx = {
   good() { play('marimba', { note: 88, dur: 0.15, delay: 0.08, vel: 0.4, verb: 0.25 }); },
   hint() { [74, 78, 81].forEach((n, i) => play('kalimba', { note: n, dur: 0.3, delay: i * 0.07, vel: 0.55 })); },
   undo() { fx({ wave: 'triangle', f: 520, f2: 380, a: 0.002, d: 0.08, vol: 0.06, verb: 0.1 }); },
-  click() { fx({ wave: 'triangle', f: 1500, f2: 1100, a: 0.001, d: 0.035, vol: 0.06, vary: 0.6 }); },
+  // Klick für alle Knöpfe, auch in den Kit-Dialogen
+  click: { wave: 'triangle', f: 1500, f2: 1100, a: 0.001, d: 0.035, vol: 0.06, vary: 0.6 },
   win() {
-    A.duck(0.75, 2.4);
+    Kit.audio.duck(0.75, 2.4);
     fx({ wave: 'noise', f: 250, f2: 1800, q: 1, a: 0.5, d: 1.1, vol: 0.08 });
     [74, 78, 81, 86, 90, 93].forEach((n, i) => play('pluck', { note: n, dur: 0.3, delay: 0.25 + i * 0.09, vel: 0.5, verb: 0.3 }));
     [86, 90, 93, 97].forEach((n, i) => play('bell', { note: n, dur: 1, delay: 0.8 + i * 0.04, vel: 0.15 }));
@@ -114,7 +103,7 @@ export const sfx = {
     fx({ wave: 'noise', f: 500, f2: 3000, q: 1, a: 0.15, d: 0.35, vol: 0.07 });
   },
   levelUp() {
-    A.duck(0.8, 3);
+    Kit.audio.duck(0.8, 3);
     fx({ wave: 'noise', f: 300, f2: 2500, q: 1, a: 0.4, d: 0.8, vol: 0.08 });
     const notes = [72, 76, 79, 84, 79, 84, 88, 91];
     notes.forEach((n, i) => play('pluck', { note: n, dur: i === notes.length - 1 ? 0.7 : 0.16, delay: i * 0.1, vel: 0.55, verb: 0.25 }));

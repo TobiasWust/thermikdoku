@@ -25,6 +25,13 @@
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
   --font: ui-rounded, "SF Pro Rounded", "Nunito", "Varela Round", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Kit-Dialoge (Einstellungen, Datenschutz …) im Thermikdoku-Stil */
+  --kit-ink: var(--ink);
+  --kit-ink-soft: var(--ink-soft);
+  --kit-accent: var(--red);
+  --kit-good: var(--good);
+  --kit-bad: var(--bad);
+  --kit-font: var(--font);
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -350,40 +357,20 @@ img { -webkit-user-drag: none; user-select: none; }
 .no-hints .tool-hint { display: none; }
 .title-mods { -webkit-text-stroke: 0; font-size: 16px; vertical-align: 2px; }
 /* Installieren */
-.install-link button { color: #fff; font-weight: 900; text-decoration: underline; text-underline-offset: 2px; padding: 2px 0; }
-.install-steps { margin: 0; padding: 0 0 0 4px; list-style: none; counter-reset: step; text-align: left; display: flex; flex-direction: column; gap: 8px; }
-.install-steps li { counter-increment: step; display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; }
-.install-steps li::before {
-  content: counter(step); flex-shrink: 0; width: 24px; height: 24px; display: grid; place-items: center;
-  border-radius: 50%; background: var(--yellow); border: 2px solid var(--ink); font-size: 13px; font-weight: 900;
-}
-.share-ico { display: inline-block; width: 20px; height: 20px; vertical-align: -4px; color: #1f7aff; }
+.kit-install-link button { color: #fff; font-weight: 900; text-decoration: underline; text-underline-offset: 2px; padding: 2px 0; }
 .modal-text { margin: 0; font-size: 14.5px; font-weight: 700; color: var(--ink-soft); line-height: 1.4; }
-.app-footer {
+.kit-footer {
+  padding: 0; font-family: var(--font);
   text-align: center; font-size: 12px; font-weight: 800; color: #fff; line-height: 1.35;
   -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill;
 }
-.app-footer p { margin: 0; }
-.app-footer a, .app-footer button { color: #fff; font-weight: 900; text-decoration: underline; text-underline-offset: 2px; }
-.app-footer-legal { display: flex; gap: 6px; justify-content: center; margin-top: 2px !important; }
-.app-footer-legal button { padding: 2px 4px; }
-.app-footer .heart { display: inline-block; margin: 0 2px; -webkit-text-stroke: 0; animation: heartbeat 1.4s ease-in-out infinite; }
+.kit-footer p { margin: 0; }
+.kit-footer a, .kit-footer button { color: #fff; font-weight: 900; text-decoration: underline; text-underline-offset: 2px; }
+.kit-footer-legal { display: flex; gap: 6px; justify-content: center; margin-top: 2px !important; }
+.kit-footer-legal button { padding: 2px 4px; }
+.kit-footer .kit-heart { display: inline-block; margin: 0 2px; -webkit-text-stroke: 0; animation: heartbeat 1.4s ease-in-out infinite; }
 @keyframes heartbeat { 0%, 60%, 100% { transform: scale(1); } 15% { transform: scale(1.3); } 30% { transform: scale(1.1); } 45% { transform: scale(1.25); } }
-.settings-legal { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-soft); font-weight: 700; }
-.settings-legal a, .settings-legal button { color: var(--ink-soft); text-decoration: underline; font-weight: 800; }
 
-.legal-card { max-height: calc(100dvh - 40px - var(--safe-t) - var(--safe-b)); }
-.legal {
-  overflow-y: auto; text-align: left; font-size: 14px; line-height: 1.5; font-weight: 600;
-  background: #fff; border: 2.5px solid var(--ink); border-radius: 16px; padding: 4px 14px 10px;
-  touch-action: pan-y; -webkit-user-select: text; user-select: text;
-}
-.legal h3 { margin: 12px 0 4px; font-size: 15px; font-weight: 900; }
-.legal p { margin: 6px 0; }
-.legal ul { margin: 6px 0; padding-left: 20px; }
-.legal a { color: #3d6fd6; }
-.legal strong { font-weight: 900; }
-.legal-meta { color: var(--ink-soft); font-size: 12.5px; }
 @media (max-height: 720px) {
   .subtitle { display: none; }
   .diff-card { padding: 8px 11px; }
@@ -464,11 +451,11 @@ img { -webkit-user-drag: none; user-select: none; }
 
 /* Farbenblind-Modus: kleines Symbol oben links in jedem Feld */
 .zsym { display: none; }
-.colorblind .zsym {
+.kit-colorblind .zsym {
   display: block; position: absolute; left: 8%; top: 8%; width: 36%; height: 36%;
   fill: var(--ink); opacity: .6; pointer-events: none;
 }
-.colorblind .board.mini .zsym { width: 26%; height: 26%; }
+.kit-colorblind .board.mini .zsym { width: 26%; height: 26%; }
 .cell .x { width: 40%; height: 40%; pointer-events: none; animation: xIn .3s cubic-bezier(.2, 1.8, .4, 1); }
 @keyframes xIn { from { transform: scale(0) rotate(-120deg); opacity: 0; } }
 .cell.auto:not(.has-x):not(.has-g)::after {
@@ -687,20 +674,8 @@ img { -webkit-user-drag: none; user-select: none; }
 .rankup-card .unlock { margin-top: 8px; padding: 6px 12px; border-radius: 14px; background: var(--yellow); border: 2.5px solid var(--ink); font-size: 14px; font-weight: 800; }
 .rankup-card p { margin: 8px 0 0; font-size: 13px; color: var(--ink-soft); }
 
-.toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 4px; border-bottom: 2px dashed rgba(43, 58, 85, .15); text-align: left; font-weight: 900; font-size: 17px; }
-.toggle small { display: block; font-size: 12px; font-weight: 600; color: var(--ink-soft); }
-.toggle input { display: none; }
-.toggle i { width: 56px; height: 34px; border-radius: 18px; background: #d6dde8; border: 3px solid var(--ink); position: relative; flex-shrink: 0; transition: background .2s; }
-.toggle i::after { content: ""; position: absolute; top: 2px; left: 2px; width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 2.5px solid var(--ink); box-sizing: border-box; transition: transform .3s cubic-bezier(.2, 1.6, .4, 1); }
-.toggle input:checked + i { background: var(--good); }
-.toggle input:checked + i::after { transform: translateX(22px); }
 /* Sprachwahl in den Einstellungen */
-.lang-seg { display: flex; flex-shrink: 0; border: 3px solid var(--ink); border-radius: 18px; overflow: hidden; background: #d6dde8; }
-.lang-seg button { padding: 6px 11px; font-size: 14px; font-weight: 900; color: var(--ink-soft); transition: background .2s, color .2s; }
-.lang-seg button + button { border-left: 3px solid var(--ink); }
-.lang-seg button[aria-pressed="true"] { background: var(--good); color: var(--ink); }
 /* Mit der Sprachzeile ist die Karte höher: auf kleinen Handys etwas enger setzen */
-@media (max-height: 720px) { #modal-settings .toggle { padding: 8px 4px; } #modal-settings .card { gap: 8px; } }
 
 /* ---------- Toast ---------- */
 .toast {
@@ -747,11 +722,10 @@ img { -webkit-user-drag: none; user-select: none; }
 }
 @media (min-width: 700px) { .screen { padding-left: 32px; padding-right: 32px; } }
 
-.legal-card .legal { flex: 1; min-height: 0; }
 
 /* Ko-fi */
-.app-footer-legal { flex-wrap: wrap; }
-.app-footer-legal a { color: #fff; }
+.kit-footer-legal { flex-wrap: wrap; }
+.kit-footer-legal a { color: #fff; }
 .kofi-link { display: inline-block; margin-top: 6px; }
 .kofi-note {
   display: flex; align-items: center; gap: 10px; text-align: left; text-decoration: none; color: var(--ink);
