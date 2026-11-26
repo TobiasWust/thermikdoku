@@ -26,6 +26,7 @@ await Kit.init({
   extraSettings: [{ key: 'hints', label: { de: 'Tipps', en: 'Hints' }, default: true }],
   colorblind: true,            // false, wenn Farbe im Spiel nichts bedeutet: Schalter entfällt
   reduceMotion: true,          // false, wenn es kaum Bewegung gibt: Schalter entfällt
+  // phoneFrame: false,        // nur für Querformat-Spiele: kein Handy-Rahmen auf breiten Bildschirmen
   onReset: () => { /* Spielstand neu laden */ },
 });
 ```
@@ -64,6 +65,12 @@ await Kit.init({
 | `Kit.vibrate(ms)` | Vibration, respektiert die Einstellung |
 | `Kit.toast(text, 'good'|'bad')` | Kurze Meldung |
 | `Kit.openSettings()` | Einstellungen öffnen |
+
+## Handy-Rahmen
+
+Auf breiten Bildschirmen (Desktop, Tablet quer) zeigt das Kit jedes Spiel im Seitenverhältnis eines Handys (9:19,5), mittig vor dem abgedunkelten Hintergrund des Spiels. `Kit.init` lädt die Seite dafür in einen iframe und kehrt auf der äußeren Seite nie zurück. Im Rahmen sind `innerWidth`, `100vw`, Dialoge und `position: fixed` handybreit, das Spiel muss nichts anpassen. Im Rahmen trägt `<html>` die Klasse `kit-in-frame`, `Kit.framed` ist `true`.
+
+Kein Rahmen auf Handys (auch quer), in der App, wenn die Seite schon eingebettet ist (Karakuri-Vorschau, Portal) und mit `?frame=0`. Wird das Fenster schmal gezogen, füllt das Spiel es ganz. Code vor `Kit.init` läuft auf der äußeren Seite mit, darum gehört `Kit.init` an den Anfang von `js/game.js`.
 
 ## Audio
 
@@ -174,7 +181,7 @@ Die **Werft** (`../werft`) baut ein Spiel als Android-App (Capacitor): Die Spiel
 - zeigt einen Datenschutztext mit AdMob und Kauf, registriert keinen Service Worker und zählt Aufrufe unter `/<id>/app/…`.
 - zeigt unten in den Einstellungen die Version (Live-Update); Antippen zeigt Build, Werft- und Kit-Version und das Werft-Protokoll (`Werft.log`: Start, Live-Updates, Werbepausen), Kit 1.11.2/1.11.3.
 
-Im Browser (Website, games.wust.dev) passiert nichts davon. `?app=play#privacy` zeigt im Browser den vollständigen App-Datenschutztext, das ist die Datenschutz-URL für Google Play und AdMob.
+Im Browser (Website, littlelift.games) passiert nichts davon. `?app=play#privacy` zeigt im Browser den vollständigen App-Datenschutztext, das ist die Datenschutz-URL für Google Play und AdMob.
 
 **Werbepausen:** An natürlichen Pausen
 

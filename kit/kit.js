@@ -7,7 +7,7 @@ import { createSprites } from './sprite.js';
 import { legalHtml } from './legal.js';
 import { MORE_STRINGS } from './strings.js';
 
-export const KIT_VERSION = '1.12.0';
+export const KIT_VERSION = '1.14.0';
 
 /** Die Sprachen aller Spiele (Reihenfolge = Auswahl in den Einstellungen). Englisch ist der Rückfall. */
 export const KIT_LANGUAGES = ['en', 'de', 'es', 'fr', 'pt', 'it', 'ja', 'ko', 'tr', 'id', 'ru', 'pl', 'nl', 'zh', 'vi', 'th', 'ar', 'hi', 'uk', 'sv'];
@@ -38,6 +38,38 @@ function detectApp() {
     if (!sessionStorage.getItem('kit:app') && document.referrer.startsWith('android-app://')) sessionStorage.setItem('kit:app', 'play');
     return sessionStorage.getItem('kit:app') || null;
   } catch { return null; }
+}
+
+
+/**
+ * Handy-Rahmen: Auf breiten Bildschirmen (Desktop, Tablet quer) läuft das Spiel im Seitenverhältnis eines Handys.
+ * Die Seite lädt sich dafür selbst in einen iframe. Drinnen sind innerWidth, 100vw, Dialoge und fixed-Elemente
+ * dann handybreit, ohne dass ein Spiel etwas anpassen muss. Handys (auch quer) und die App bekommen keinen Rahmen.
+ */
+const FRAME_RATIO = 9 / 19.5;
+function inKitFrame() { try { return window !== top && !!parent.document.documentElement.classList.contains('kit-frame-host'); } catch { return false; } }
+function wantsFrame() {
+  if (window.Werft?.app || window !== top) return false; // App, oder schon eingebettet (Karakuri-Vorschau, Portal)
+  if (new URLSearchParams(location.search).get('frame') === '0') return false;
+  const phone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600;
+  return !phone && innerWidth / innerHeight > FRAME_RATIO * 1.35;
+}
+function buildFrame() {
+  const html = document.documentElement;
+  html.classList.add('kit-frame-host');
+  html.style.setProperty('--kit-frame-ratio', String(FRAME_RATIO));
+  // Installieren: Chrome meldet das nur der obersten Seite, das Spiel im Rahmen holt es sich hier ab
+  addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.kitInstallPrompt = e; });
+  document.body.replaceChildren();
+  const wrap = document.createElement('div'); wrap.className = 'kit-frame';
+  const f = document.createElement('iframe');
+  f.title = document.title; f.src = location.href;
+  f.allow = 'autoplay; fullscreen; gamepad; screen-wake-lock';
+  f.addEventListener('load', () => f.contentWindow?.focus());
+  wrap.append(f); document.body.append(wrap);
+  // Tasten landen im Spiel, auch wenn jemand neben den Rahmen geklickt hat
+  addEventListener('keydown', () => f.contentWindow?.focus());
+  addEventListener('pointerdown', () => setTimeout(() => f.contentWindow?.focus()));
 }
 
 const KIT_STRINGS = {
@@ -167,8 +199,13 @@ const Kit = {
    * @param {Function} [cfg.onReset]   Wird nach „Fortschritt löschen“ aufgerufen
    * @param {object} [cfg.music]       Hintergrundmusik: { bpm, scale, root, mood } (generiert) oder ein Song (siehe README)
    * @param {object} [cfg.sounds]      Eigene Effekte { name: fx-Parameter } → Kit.audio.sfx.name()
+   * @param {boolean} [cfg.phoneFrame=true] false: Spiel ist fürs Querformat gebaut, kein Handy-Rahmen auf breiten Bildschirmen
    */
   async init(cfg) {
+    // Breiter Bildschirm: Spiel im Handy-Rahmen neu laden, diese Seite ist nur noch der Rahmen (init kehrt nie zurück)
+    if (cfg.phoneFrame !== false && wantsFrame()) { buildFrame(); return new Promise(() => {}); }
+    this.framed = inKitFrame();
+    document.documentElement.classList.toggle('kit-in-frame', this.framed);
     this.config = { languages: KIT_LANGUAGES, extraSettings: [], colorblind: true, reduceMotion: true, goatcounter: GOATCOUNTER, ...cfg };
     this.languages = this.config.languages;
     this.app = detectApp();
@@ -498,7 +535,9 @@ const Kit = {
       $$('.kit-install-link, .kit-install-btn').forEach((el) => (el.hidden = !!standalone));
     };
     mq.addEventListener?.('change', update);
-    addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); this._installPrompt = e; update(); });
+    const host = this.framed ? parent : window; // im Handy-Rahmen kommt das Ereignis bei der Rahmenseite an
+    this._installPrompt = host.kitInstallPrompt || null;
+    host.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); this._installPrompt = e; update(); });
     addEventListener('appinstalled', () => { this._installPrompt = null; installed = true; update(); this.toast(this.t('kit.installed'), 'good'); });
     this._updateInstall = update;
     update();
@@ -587,7 +626,8 @@ const Kit = {
     if (window.Werft?.app || !/^(localhost|127\.|\[::1\])/.test(location.hostname)) { // in der App heißt der Host auch localhost
       // Gemeinsamer Zähler für alle Spiele: Aufrufe landen unter /<spiel-id>/…
       const sub = (CHANNELS[this.channel] || {}).countAs; const base = sub ? `/${id}/${sub}` : `/${id}`; // Aufrufe aus der Play-Store-App getrennt sehen
-      window.goatcounter = { ...(window.goatcounter || {}), path: (p) => `${base}${p.startsWith('/') ? p : `/${p}`}` };
+      // allow_local: In der App heißt der Host localhost, count.js verwirft solche Aufrufe sonst stillschweigend
+      window.goatcounter = { ...(window.goatcounter || {}), allow_local: !!window.Werft?.app, path: (p) => `${base}${p.startsWith('/') ? p : `/${p}`}` };
       const s = document.createElement('script');
       s.async = true; s.src = 'https://gc.zgo.at/count.js'; s.dataset.goatcounter = gc;
       document.head.append(s);

@@ -1,5 +1,5 @@
 {
-  "version": "1.13.0",
+  "version": "1.14.0",
   "files": [
     "kit.js",
     "audio.js",
@@ -12,6 +12,16 @@
     "README.md"
   ],
   "changelog": {
+    "1.14.0": {
+      "changes": "Handy-Rahmen: Auf breiten Bildschirmen (Desktop, Tablet quer) läuft jedes Spiel automatisch im Seitenverhältnis eines Handys (9:19,5), mittig vor dem abgedunkelten Spielhintergrund. Das Kit lädt das Spiel dafür in einen iframe, drinnen sind innerWidth, 100vw und Dialoge handybreit. Handys, die App und eingebettete Spiele (Karakuri-Vorschau) bleiben wie bisher. Abschalten mit Kit.init({ phoneFrame: false }) oder ?frame=0",
+      "advice": "empfohlen",
+      "why": "Am Desktop sahen die Spiele bisher in die Breite gezogen aus oder hatten leere Ränder. Mit dem Update sieht jedes Spiel im Browser so aus wie am Handy, ohne Änderung am Spiel. Spiele, die fürs Querformat gebaut sind, setzen phoneFrame: false."
+    },
+    "1.13.1": {
+      "changes": "Besucherzählung in der App: Das Kit setzt in der Play-Store- und iOS-App allow_local für GoatCounter. Bisher lud count.js dort zwar, verwarf die Aufrufe aber, weil die App unter localhost läuft. Jetzt erscheinen sie unter /<id>/app/ bzw. /<id>/ios/. Auf der Website ändert sich nichts",
+      "advice": "optional",
+      "why": "Ohne das Update zählt GoatCounter keine Spieler aus der App. Nicht dringend, kommt mit dem nächsten Kit-Update ohnehin mit."
+    },
     "1.13.0": {
       "changes": "Marke Little Lift Games: Footer und Einstellungen zeigen „Made with ❤️ by Little Lift Games“ mit Link auf littlelift.games statt „Wust“/wust.dev. Datenschutz und Impressum nennen Little Lift Games als Marke von Tobias Wust (Anschrift bleibt), Kontakt-Mail ist jetzt contact@littlelift.games",
       "advice": "empfohlen",

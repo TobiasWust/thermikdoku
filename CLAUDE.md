@@ -10,7 +10,7 @@ Diese Regeln gelten für jedes Spiel. Die Factory prüft sie nach jeder Änderun
 - Nur relative Pfade (`css/style.css`, nicht `/css/style.css`): Die Factory zeigt Spiele unter einem Unterpfad an.
 - **Der Ordner `kit/` ist tabu.** Er wird bei Kit-Updates überschrieben. Nutze seine API (siehe `kit/README.md`), statt Footer, Einstellungen, Rechtliches, Audio-Lautstärke oder Speicher selbst zu bauen.
 - `sw.js` bindet nur `kit/sw-core.js` ein. Größere Dateien (Bilder, Worker) in `self.PRECACHE` eintragen.
-- `game.json` beschreibt das Spiel für die Factory. Halte `name`, `description` (1–2 Sätze, Deutsch) und `tags` (3–6 kurze Schlagworte, Deutsch, klein) aktuell. Gibt es `en` (`{ "description", "tags" }`, die englische Fassung für games.wust.dev), ändere sie inhaltlich gleich mit. `slug`, `kitVersion`, `deploy`, `categories` und `createdAt` nicht ändern.
+- `game.json` beschreibt das Spiel für die Factory. Halte `name`, `description` (1–2 Sätze, Deutsch) und `tags` (3–6 kurze Schlagworte, Deutsch, klein) aktuell. Gibt es `en` (`{ "description", "tags" }`, die englische Fassung für littlelift.games), ändere sie inhaltlich gleich mit. `slug`, `kitVersion`, `deploy`, `categories` und `createdAt` nicht ändern.
 - Jedes Spiel ist als App installierbar (PWA, wie Thermikdoku). `manifest.webmanifest` mit Name, Kurzname, Beschreibung, Farben (`background_color`, `theme_color`) und `display: standalone`, passend zum Spiel.
 - Das Icon zeichnest du nur als `icons/icon.svg` (quadratisch, kräftig, erkennbar auch klein, Motiv nicht bis an den Rand). Die PNG-Icons (`icon-64`, `icon-180` für iOS, `icon-192`, `icon-512`, `icon-maskable-512`) erzeugt Karakuri vor jedem Check daraus, ebenso die Einträge in Manifest und `index.html`. Diese PNGs nicht von Hand ändern oder löschen. Hat das Spiel gemalte KI-Grafik, passt ein gezeichnetes SVG-Icon oft nicht dazu: Dann erzeuge `icons/icon-source.png` mit dem Bild-Generator (er hat dafür ein eigenes Preset für App-Icons; immer im Stil des Spiels; das Motiv ist frei: was der Nutzer sich wünscht, sonst was das Spiel auf einen Blick erkennbar macht, nicht zwingend die Hauptfigur); Karakuri baut die PNGs dann daraus, `icon.svg` bleibt als Rückfall.
 - **Schrift:** Ohne eigene Schrift nutzt das Spiel die Systemschrift des Geräts, die auf iPhone und Android verschieden aussieht. Hat das Spiel einen eigenen Look (gemalte Grafik, ein klares Thema), bekommt es eine passende Schrift als Datei: mit dem Schrift-Werkzeug des Bild-Generators aussuchen und einbauen (kostenlos, nur offene Lizenzen), sonst eine frei lizenzierte `.woff2` samt Lizenztext nach `assets/fonts/` legen. Schriften ungeklärter Herkunft oder mit „free for personal use“ kommen nicht ins Spiel; der Check verlangt den Lizenztext neben jeder Schriftdatei. Nie von fremden Servern laden. Die `@font-face`-Regeln kommen in `css/style.css` (Pfad von dort: `../assets/fonts/…`), die Schrift wird über `--kit-font` in `:root` gesetzt, dann nutzen sie auch die Kit-Dialoge. Eine Schmuckschrift nur für den Titel bekommt eine eigene Variable und bleibt aus Fließtext und Zahlen heraus. Die Dateien in `self.PRECACHE` eintragen. Text auf dem Canvas nimmt die Schrift erst, wenn sie geladen ist: vor dem ersten Zeichnen `await document.fonts.load('700 16px "Name"')`.
@@ -63,7 +63,7 @@ Standard ist Vanilla-JavaScript ohne fremde Bibliotheken. Das reicht für Rätse
 
 ## Showcase (Bilder und Videos)
 
-`tools/showcase.js` zeigt das Spiel von seiner besten Seite: Daraus nimmt Karakuri die Store-Screenshots, die Bilder auf games.wust.dev und Gameplay-Videos für TikTok, Reels und Shorts auf. Den Vertrag beschreibt `/Users/wust/Documents/dev/vibecode/games-factory/app/lib/showcase.js`; ausprobieren mit `node /Users/wust/Documents/dev/vibecode/games-factory/app/cli-showcase.js .`.
+`tools/showcase.js` zeigt das Spiel von seiner besten Seite: Daraus nimmt Karakuri die Store-Screenshots, die Bilder auf littlelift.games und Gameplay-Videos für TikTok, Reels und Shorts auf. Den Vertrag beschreibt `/Users/wust/Documents/dev/vibecode/games-factory/app/lib/showcase.js`; ausprobieren mit `node /Users/wust/Documents/dev/vibecode/games-factory/app/cli-showcase.js .`.
 
 - Gibt es die Datei, halte sie aktuell: Ändern sich Leveldaten, Steuerung, Testzugang oder Bildschirme, passe `list()` und `play()` mit an und probiere sie aus.
 - Ein Testzugang für den Showcase (z.B. `window.XY = {…}` nur bei `location.hash === '#debug'`) bleibt erhalten.
@@ -96,7 +96,7 @@ Spiele sollen **sehr lebendig** sein. Jede Aktion bekommt sichtbares und hörbar
 
 ## Bedienung und Layout
 
-- **Handy zuerst** (Hochformat 360–430 px breit), funktioniert aber auch am Desktop. Kein horizontales Scrollen, Safe-Areas beachten (`env(safe-area-inset-*)`).
+- **Handy zuerst** (Hochformat 360–430 px breit). Am Desktop zeigt das Kit das Spiel automatisch im Handy-Rahmen, baue also kein eigenes Desktop-Layout. Nur ein ausdrückliches Querformat-Spiel setzt `Kit.init({ phoneFrame: false })`. Kein horizontales Scrollen, Safe-Areas beachten (`env(safe-area-inset-*)`).
 - Touch, Maus und Tastatur. Tippflächen mindestens 44×44 px. Keine Abhängigkeit von Hover.
 - Klare Regeln: Ein kurzes „So geht's“ beim ersten Start oder über einen Hilfe-Button.
 - Fortschritt (Highscore, Level, Sterne) wird gespeichert und ist sichtbar.

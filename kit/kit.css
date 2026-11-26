@@ -121,3 +121,15 @@
 
 /* Play-Store-App (Kit.app): kein Ko-fi, nichts zu installieren */
 .kit-app .kit-no-app { display: none !important; }
+
+/* ---------- Handy-Rahmen (breite Bildschirme, siehe kit.js) ----------
+   Die Rahmenseite behält den Hintergrund des Spiels, abgedunkelt; das Spiel läuft im iframe. */
+.kit-frame-host, .kit-frame-host body { margin: 0; height: 100%; overflow: hidden; }
+.kit-frame { position: fixed; inset: 0; z-index: 2147483647; display: grid; place-items: center; padding: 16px; background: rgba(10, 6, 20, .45); }
+.kit-frame iframe {
+  display: block; border: 0; background: #000;
+  height: min(100dvh - 32px, (100vw - 32px) / var(--kit-frame-ratio)); aspect-ratio: var(--kit-frame-ratio);
+  border-radius: 28px; box-shadow: 0 0 0 6px rgba(0, 0, 0, .55), 0 24px 70px rgba(0, 0, 0, .5);
+}
+/* Fenster schmal gezogen: Rahmen weg, Spiel füllt alles */
+@media (max-aspect-ratio: 3/5) { .kit-frame { padding: 0; } .kit-frame iframe { height: 100dvh; width: 100vw; aspect-ratio: auto; border-radius: 0; box-shadow: none; } }
