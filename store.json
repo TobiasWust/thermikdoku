@@ -1,0 +1,30 @@
+{
+  "id": "dev.wust.thermikdoku",
+  "name": "Thermikdoku",
+  "kind": "game",
+  "url": "https://thermikdoku.de",
+  "languages": [
+    "en",
+    "de",
+    "es",
+    "fr",
+    "pt",
+    "it",
+    "ja",
+    "ko",
+    "tr",
+    "id",
+    "ru",
+    "pl",
+    "nl",
+    "zh",
+    "vi",
+    "th",
+    "ar",
+    "hi",
+    "uk",
+    "sv"
+  ],
+  "description": "Kawaii-Logikrätsel mit Gleitschirmen: ein Schirm pro Reihe, Spalte und Thermik-Zone, ohne dass sie sich berühren. Unendlich viele Rätsel, offline spielbar.",
+  "ads": true
+}
