@@ -2,12 +2,27 @@
   "slug": "thermikdoku",
   "name": "Thermikdoku",
   "description": "Kawaii-Logikrätsel mit Gleitschirmen: ein Schirm pro Reihe, Spalte und Thermik-Zone, ohne dass sie sich berühren. Unendlich viele Rätsel, offline spielbar.",
-  "tags": ["logik", "rätsel", "gleitschirm", "knobeln", "kawaii"],
+  "tags": [
+    "logik",
+    "rätsel",
+    "gleitschirm",
+    "knobeln",
+    "kawaii"
+  ],
   "en": {
     "description": "A kawaii logic puzzle with paragliders: one glider per row, column and thermal zone, and none may touch. Endless puzzles, playable offline.",
-    "tags": ["logic", "puzzle", "paragliding", "brain teaser", "kawaii"]
+    "tags": [
+      "logic",
+      "puzzle",
+      "paragliding",
+      "brain teaser",
+      "kawaii"
+    ]
   },
-  "languages": ["de", "en"],
+  "languages": [
+    "de",
+    "en"
+  ],
   "kitVersion": "1.11.3",
   "createdAt": "2026-11-20T11:40:29+01:00",
   "deploy": {
@@ -15,5 +30,9 @@
     "siteId": "4066bd23-d18c-443b-8c6c-a55fec7523e8",
     "siteName": "thermikdoku",
     "lastDeploy": "2026-11-20T20:56:23.207Z"
-  }
+  },
+  "categories": [
+    "logic",
+    "puzzle"
+  ]
 }

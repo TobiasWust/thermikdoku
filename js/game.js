@@ -170,7 +170,11 @@ function resetProgress() {
 const fmtTime = (s) => { s = Math.floor(s); const m = Math.floor(s / 60); return `${m}:${String(s % 60).padStart(2, '0')}`; };
 // wartet auf das nächste Bild – mit Zeitlimit, falls der Tab im Hintergrund ist
 const nextFrame = () => new Promise((r) => { requestAnimationFrame(() => requestAnimationFrame(r)); setTimeout(r, 60); });
-const randomSeed = () => crypto.getRandomValues(new Uint32Array(1))[0];
+// Testzugang (nur mit #debug in der Adresse): feste Rätsel-Seeds, damit Vorführungen gleich ablaufen
+const DEBUG = location.hash === '#debug';
+let debugSeed = 20261126;
+const randomSeed = () => DEBUG ? (debugSeed = (Math.imul(debugSeed, 1664525) + 1013904223) >>> 0)
+  : crypto.getRandomValues(new Uint32Array(1))[0];
 const sizeLabel = (d) => DIFFICULTIES[d].sizes.map((n) => `${n}×${n}`).join(' / ');
 
 function gliderHTML(k, src = sprite(k)) {
@@ -290,6 +294,7 @@ const G = {
   run: null,             // laufender Zeitflug: { solved, elapsed, next }
 };
 let timerInt = null;
+if (DEBUG) window.thermikDebug = { G, store };
 
 function pauseTimer() {
   if (G.startedAt != null) { G.elapsed += (performance.now() - G.startedAt) / 1000; G.startedAt = null; }
