@@ -32,7 +32,7 @@ import { t, tp, onLang, fmtNum, fmtList } from './i18n.js';
 await Kit.init({
   id: 'thermikdoku',
   name: 'Thermikdoku',
-  languages: ['de', 'en'],
+  languages: ['en', 'de', 'es', 'fr', 'pt', 'it', 'ja', 'ko', 'tr', 'id', 'ru', 'pl', 'nl', 'zh', 'vi', 'th', 'ar', 'hi', 'uk', 'sv'],
   music: SONG,
   sounds: SOUNDS,
   extraSettings: [{ key: 'autoX', label: { de: 'Automatische ×', en: 'Automatic ×' }, hint: { de: 'Blockierte Felder anzeigen', en: 'Show blocked cells' }, default: false }],

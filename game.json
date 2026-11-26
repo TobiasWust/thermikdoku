@@ -20,8 +20,26 @@
     ]
   },
   "languages": [
+    "en",
     "de",
-    "en"
+    "es",
+    "fr",
+    "pt",
+    "it",
+    "ja",
+    "ko",
+    "tr",
+    "id",
+    "ru",
+    "pl",
+    "nl",
+    "zh",
+    "vi",
+    "th",
+    "ar",
+    "hi",
+    "uk",
+    "sv"
   ],
   "kitVersion": "1.12.0",
   "createdAt": "2026-11-20T11:40:29+01:00",
