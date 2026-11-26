@@ -19,7 +19,7 @@ import Kit from '../kit/kit.js';
 await Kit.init({
   id: 'mein-spiel',            // Slug, trennt den Speicher von anderen Spielen
   name: 'Mein Spiel',
-  languages: ['de', 'en'],     // je eine Datei i18n/<lang>.json
+  // languages: Standard sind alle zwanzig Kit-Sprachen (KIT_LANGUAGES), je eine Datei i18n/<lang>.json
   // goatcounter: false,       // Standard: gemeinsamer Zähler karakurigames (Aufrufe unter /<id>/, Ko-fi-Klicks als kofi/<id>/…); false schaltet ab
   music: { bpm: 104, scale: 'pentatonic', root: 60, mood: 'happy' }, // oder ein Song, siehe Audio
   sounds: { jump: { wave: 'square', f: 320, f2: 760, d: 0.2 } },     // → Kit.audio.sfx.jump()

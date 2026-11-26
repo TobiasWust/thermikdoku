@@ -5,8 +5,13 @@
 import { createAudio } from './audio.js';
 import { createSprites } from './sprite.js';
 import { legalHtml } from './legal.js';
+import { MORE_STRINGS } from './strings.js';
 
-export const KIT_VERSION = '1.11.3';
+export const KIT_VERSION = '1.12.0';
+
+/** Die Sprachen aller Spiele (Reihenfolge = Auswahl in den Einstellungen). Englisch ist der Rückfall. */
+export const KIT_LANGUAGES = ['en', 'de', 'es', 'fr', 'pt', 'it', 'ja', 'ko', 'tr', 'id', 'ru', 'pl', 'nl', 'zh', 'vi', 'th', 'ar', 'hi', 'uk', 'sv'];
+// zh = Chinesisch in Langzeichen (Taiwan, Hongkong: dort gibt es Google Play)
 
 /**
  * Läuft das Spiel als Android-App aus dem Play Store (TWA)? Die App startet mit ?app=play.
@@ -124,7 +129,9 @@ const KIT_STRINGS = {
   },
 };
 
-export const LANG_NAMES = { de: 'Deutsch', en: 'English', fr: 'Français', es: 'Español', it: 'Italiano', nl: 'Nederlands' };
+Object.assign(KIT_STRINGS, MORE_STRINGS);
+
+export const LANG_NAMES = { en: 'English', de: 'Deutsch', es: 'Español', fr: 'Français', pt: 'Português', it: 'Italiano', ja: '日本語', ko: '한국어', tr: 'Türkçe', id: 'Bahasa Indonesia', ru: 'Русский', pl: 'Polski', nl: 'Nederlands', zh: '繁體中文', vi: 'Tiếng Việt', th: 'ไทย', ar: 'العربية', hi: 'हिन्दी', uk: 'Українська', sv: 'Svenska' };
 
 // Okabe-Ito: für alle Formen von Farbenblindheit unterscheidbar
 export const SAFE_COLORS = ['#E69F00', '#56B4E9', '#009E73', '#F0E442', '#0072B2', '#D55E00', '#CC79A7', '#999999'];
@@ -142,7 +149,7 @@ const Kit = {
   version: KIT_VERSION,
   config: null,
   lang: 'en',
-  languages: ['de', 'en'],
+  languages: KIT_LANGUAGES,
   strings: {},
   settings: null,
   audio: null,
@@ -152,7 +159,7 @@ const Kit = {
    * @param {object} cfg
    * @param {string} cfg.id            Eindeutiger Slug, Präfix für den Speicher
    * @param {string} cfg.name          Spielname (für Texte, Rechtliches)
-   * @param {string[]} [cfg.languages] Verfügbare Sprachen, jeweils i18n/<lang>.json
+   * @param {string[]} [cfg.languages] Verfügbare Sprachen, jeweils i18n/<lang>.json (Standard: KIT_LANGUAGES)
    * @param {string|false} [cfg.goatcounter] GoatCounter-URL; Standard ist der gemeinsame Zähler aller Karakuri-Spiele, false schaltet ihn ab
    * @param {Array}  [cfg.extraSettings] [{key, label:{de,en}, hint:{de,en}, default:true}]
    * @param {boolean} [cfg.colorblind=true]   false: Spiel transportiert nichts über Farbe, Schalter entfällt
@@ -162,7 +169,7 @@ const Kit = {
    * @param {object} [cfg.sounds]      Eigene Effekte { name: fx-Parameter } → Kit.audio.sfx.name()
    */
   async init(cfg) {
-    this.config = { languages: ['de', 'en'], extraSettings: [], colorblind: true, reduceMotion: true, goatcounter: GOATCOUNTER, ...cfg };
+    this.config = { languages: KIT_LANGUAGES, extraSettings: [], colorblind: true, reduceMotion: true, goatcounter: GOATCOUNTER, ...cfg };
     this.languages = this.config.languages;
     this.app = detectApp();
     this.channel = CHANNELS[this.app] ? this.app : (this.app ? 'play' : 'web');
@@ -177,8 +184,12 @@ const Kit = {
       reduceMotion: prefersReduced(),
     };
     for (const s of this.config.extraSettings) defaults[s.key] = s.default ?? false;
-    this.settings = { ...defaults, ...this.store.get('settings', {}) };
-    if (!this.languages.includes(this.settings.lang)) this.settings.lang = this.languages[0];
+    const saved = this.store.get('settings', {});
+    // Die Sprache folgt dem Browser, bis jemand sie in den Einstellungen selbst wählt (langChosen).
+    // So bekommen Spieler neue Sprachen automatisch, statt auf der ersten automatisch gewählten festzuhängen.
+    if (!saved.langChosen) delete saved.lang;
+    this.settings = { ...defaults, ...saved };
+    if (!this.languages.includes(this.settings.lang)) this.settings.lang = this.pickLang();
     // Ohne Schalter: Farbenblind aus, Animationen folgen der Systemeinstellung
     if (this.config.colorblind === false) this.settings.colorblind = false;
     if (this.config.reduceMotion === false) this.settings.reduceMotion = prefersReduced();
@@ -239,22 +250,23 @@ const Kit = {
   },
 
   // ---------- Sprache ----------
+  /** Erste Browsersprache, die das Spiel kann (pt-BR → pt, in → id), sonst Englisch */
   pickLang() {
-    const langs = (navigator.languages || [navigator.language || 'en']).map((l) => l.slice(0, 2).toLowerCase());
+    const alias = { in: 'id', iw: 'he', nb: 'no' };
+    const langs = (navigator.languages?.length ? navigator.languages : [navigator.language || 'en']).map((l) => { const c = String(l).slice(0, 2).toLowerCase(); return alias[c] || c; });
     return langs.find((l) => this.languages.includes(l)) || (this.languages.includes('en') ? 'en' : this.languages[0]);
   },
   async loadStrings(lang) {
-    let game = {};
-    try {
-      const res = await fetch(`i18n/${lang}.json`, { cache: 'no-cache' });
-      if (res.ok) game = await res.json();
-    } catch {}
-    this.strings = { ...(KIT_STRINGS[lang] || KIT_STRINGS.en), ...game };
+    const load = async (l) => { try { const res = await fetch(`i18n/${l}.json`, { cache: 'no-cache' }); return res.ok ? await res.json() : {}; } catch { return {}; } };
+    // Fehlt ein Text in der gewählten Sprache, steht dort der englische statt des Schlüssels
+    const [game, fallback] = await Promise.all([load(lang), lang === 'en' ? {} : load('en')]);
+    this.strings = { ...KIT_STRINGS.en, ...(KIT_STRINGS[lang] || {}), ...fallback, ...game };
     this.lang = lang;
     document.documentElement.lang = lang;
   },
   async setLang(lang) {
     this.settings.lang = lang;
+    this.settings.langChosen = true;
     this.store.set('settings', this.settings);
     await this.loadStrings(lang);
     this.translate();

@@ -1,7 +1,7 @@
 // Kit Service Worker: Netzwerk zuerst (Updates kommen sofort an), Cache als Fallback (offline).
 // Einbinden im Spiel über sw.js:  self.GAME_CACHE = 'mein-spiel'; importScripts('kit/sw-core.js');
 const CACHE = `${self.GAME_CACHE || 'game'}-v1`;
-const PRECACHE = ['./', 'index.html', 'manifest.webmanifest', 'kit/kit.js', 'kit/audio.js', 'kit/legal.js', 'kit/kit.css', ...(self.PRECACHE || [])];
+const PRECACHE = ['./', 'index.html', 'manifest.webmanifest', 'kit/kit.js', 'kit/audio.js', 'kit/legal.js', 'kit/strings.js', 'kit/sprite.js', 'kit/kit.css', ...(self.PRECACHE || [])];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => Promise.all(PRECACHE.map((u) => c.add(u).catch(() => {})))).then(() => self.skipWaiting()));

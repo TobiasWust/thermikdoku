@@ -1,16 +1,22 @@
 {
-  "version": "1.11.3",
+  "version": "1.12.0",
   "files": [
     "kit.js",
     "audio.js",
     "sprite.js",
     "legal.js",
+    "strings.js",
     "kit.css",
     "sw-core.js",
     "kit.json",
     "README.md"
   ],
   "changelog": {
+    "1.12.0": {
+      "changes": "Zwanzig Sprachen (en, de, es, fr, pt, it, ja, ko, tr, id, ru, pl, nl, zh, vi, th, ar, hi, uk, sv; zh = Chinesisch in Langzeichen für Taiwan und Hongkong) als KIT_LANGUAGES, Standard für Kit.init. Die Sprache folgt dem Browser (pt-BR → pt), Englisch ist der Rückfall, auch für einzelne fehlende Texte. Wer sie in den Einstellungen selbst wählt, behält seine Wahl; automatisch gewählte Sprachen werden bei jedem Start neu bestimmt, damit neue Sprachen ankommen. Datenschutz und Impressum bleiben Deutsch (für Deutsch) oder Englisch (alle anderen).",
+      "advice": "empfohlen",
+      "why": "Mehr Spieler verstehen das Spiel in ihrer Sprache, und die Store-Einträge können in zwanzig Sprachen erscheinen. Nach dem Update übersetzt Karakuri die Texte des Spiels in die fehlenden Sprachen."
+    },
     "1.11.3": {
       "changes": "Versionszeile in den Einstellungen der App gekürzt: nur noch „Version …“; Build, Werft- und Kit-Version stehen beim Antippen über dem Protokoll",
       "advice": "optional",

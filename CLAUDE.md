@@ -51,11 +51,22 @@ Standard ist Vanilla-JavaScript ohne fremde Bibliotheken. Das reicht für Rätse
 
 ## Sprachen
 
-- Jedes Spiel unterstützt mindestens **Deutsch und Englisch** (`languages: ['de', 'en']`). Weitere Sprachen kommen als weitere `i18n/<code>.json` dazu.
+- Jedes Spiel gibt es in den **zwanzig Kit-Sprachen**: Englisch, Deutsch, Spanisch, Französisch, Portugiesisch (Brasilien), Italienisch, Japanisch, Koreanisch, Türkisch, Indonesisch, Russisch, Polnisch, Niederländisch, Chinesisch in Langzeichen (`zh`, Taiwan/Hongkong), Vietnamesisch, Thai, Arabisch, Hindi, Ukrainisch, Schwedisch (`en de es fr pt it ja ko tr id ru pl nl zh vi th ar hi uk sv`), je eine Datei `i18n/<code>.json`. `Kit.init` ohne `languages` nimmt alle zwanzig; `game.json` führt sie unter `languages`.
+- Das Kit wählt die Sprache selbst nach dem Browser, Englisch ist der Rückfall. Wählt jemand in den Einstellungen eine Sprache, bleibt sie.
 - **Kein sichtbarer Text im HTML oder JS fest verdrahtet.** Alles über `data-i18n` oder `Kit.t()`. Alle Sprachdateien haben exakt dieselben Schlüssel.
-- `meta.title` und `meta.description` in jeder Sprachdatei.
+- **Neue oder geänderte Texte in allen zwanzig Sprachdateien** eintragen, gleich mit übersetzt (natürlich und kurz, wie ein Muttersprachler es auf einem Handy-Knopf schreiben würde; Platzhalter wie `{n}` und HTML bleiben). Englisch ist die Vorlage für alle anderen.
+- `meta.title` und `meta.description` in jeder Sprache.
 - Bei `Kit.on('lang')` alles Dynamische neu beschriften (Canvas-Texte, Buttons, Ergebnisse).
+- Platz für längere Wörter (Deutsch, Französisch, Türkisch) und andere Schriften (Japanisch, Koreanisch, Chinesisch, Thai, Hindi, Arabisch, Kyrillisch): Knöpfe und Schilder wachsen mit oder brechen um, nichts läuft über. Das Layout bleibt auch auf Arabisch links nach rechts. Eine eigene Schrift ohne diese Zeichen ist in Ordnung, wenn die `font-family` mit `system-ui, sans-serif` endet (dann springt die Systemschrift ein); Canvas-Texte genauso.
+- Beschriftungen von `extraSettings` haben `label: { de, en }`; für die übrigen Sprachen die Schlüssel `extra.<key>` (und `extra.<key>.hint`) in die Sprachdateien.
 - Deutsch: natürlich, du-Form, keine Anglizismen, wo es ein gutes deutsches Wort gibt. Englisch: britische Schreibweise.
+
+## Showcase (Bilder und Videos)
+
+`tools/showcase.js` zeigt das Spiel von seiner besten Seite: Daraus nimmt Karakuri die Store-Screenshots, die Bilder auf games.wust.dev und Gameplay-Videos für TikTok, Reels und Shorts auf. Den Vertrag beschreibt `/Users/wust/Documents/dev/vibecode/games-factory/app/lib/showcase.js`; ausprobieren mit `node /Users/wust/Documents/dev/vibecode/games-factory/app/cli-showcase.js .`.
+
+- Gibt es die Datei, halte sie aktuell: Ändern sich Leveldaten, Steuerung, Testzugang oder Bildschirme, passe `list()` und `play()` mit an und probiere sie aus.
+- Ein Testzugang für den Showcase (z.B. `window.XY = {…}` nur bei `location.hash === '#debug'`) bleibt erhalten.
 
 ## Animation und Gefühl (wichtig!)
 
@@ -110,6 +121,6 @@ Die Spiele laufen vor allem auf Handys. Der Code soll schlank und optimiert sein
 ## Qualität
 
 - Das Spiel macht nach 10 Sekunden Spaß. Schwierigkeit steigt sanft.
-- Kein Text, der überläuft oder abgeschnitten wird – in beiden Sprachen prüfen.
+- Kein Text, der überläuft oder abgeschnitten wird – in allen Sprachen (der Check schaltet sie durch).
 - Code lesbar, kommentiert auf Deutsch, in sinnvolle Module aufgeteilt.
 - README.md: Was ist das Spiel, Regeln, Steuerung, lokal starten.
