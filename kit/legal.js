@@ -1,5 +1,5 @@
 // Datenschutz und Impressum, zweisprachig. Stand wird mit dem Kit gepflegt.
-const MAIL = 'kontakt@tobiaswust.de';
+const MAIL = 'contact@littlelift.games';
 const mail = `<a href="mailto:${MAIL}">${MAIL}</a>`;
 const STAND = { de: 'November 2026', en: 'November 2026' };
 
@@ -15,7 +15,7 @@ export function legalHtml(lang, name, counter, { app = false, ads = false, purch
   const n = escapeHtml(name);
   const sec = [];
   if (de) {
-    sec.push(['Verantwortlicher', `<p>Verantwortlich für die Datenverarbeitung auf dieser Website im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:</p><p>Tobias Wust<br>E-Mail: ${mail}</p>`]);
+    sec.push(['Verantwortlicher', `<p>Verantwortlich für die Datenverarbeitung auf dieser Website im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:</p><p>Tobias Wust (Little Lift Games)<br>E-Mail: ${mail}</p>`]);
     sec.push(['Überblick', `<p>${n} ist ein Spiel, das komplett in deinem Browser läuft. Es gibt <strong>keine Konten${ads ? '' : ', keine Cookies, keine Werbung'} und kein Tracking</strong>. Beteiligt sind:</p><ul><li><strong>Netlify</strong> stellt die Dateien des Spiels bereit.</li>${counter ? '<li><strong>GoatCounter</strong> zählt Aufrufe anonym und ohne Cookies.</li>' : ''}${app ? `<li><strong>${st.title}</strong> liefert die App aus.</li>` : ''}${ads ? '<li><strong>Google AdMob</strong> zeigt in der App gelegentlich Werbung in Spielpausen.</li>' : ''}</ul>${app ? '' : '<p>Der Link „Kaffee spendieren“ führt zu <strong>Ko-fi</strong> (ko-fi.com). Es wird nichts von Ko-fi in diese Seite geladen. Daten verarbeitet Ko-fi erst, wenn du den Link öffnest. Dann gilt die Datenschutzerklärung von Ko-fi.</p>'}`]);
     if (app) sec.push([`App aus ${st.title}`, `<p>Die ${st.os}-App von ${n} enthält das Spiel und läuft ohne Internet. Ist eine Verbindung da, prüft sie beim Start, ob es eine neuere Version des Spiels gibt, und lädt sie von unserem Server (Netlify, siehe unten); dabei werden nur technische Daten wie die IP-Adresse verarbeitet. Beim Herunterladen und Aktualisieren über ${st.store} verarbeitet ${st.company} Daten nach seiner eigenen Datenschutzerklärung (${S.policy}). Wir erhalten von ${st.company} nur zusammengefasste Statistiken, etwa die Zahl der Installationen und Absturzberichte ohne Personenbezug.</p>${purchase ? `<p><strong>„Werbung entfernen“:</strong> Den Kauf wickelt ${st.company} über ${st.store} ab. Wir erhalten dabei keine Zahlungsdaten, nur die Bestätigung, dass der Kauf zu deinem ${st.company}-Konto gehört; die App merkt sich das auf dem Gerät.</p>` : ''}`]);
     if (ads) sec.push(['Werbung (Google AdMob)', `<p>In der App zeigt Google AdMob gelegentlich ganzseitige Werbung in natürlichen Spielpausen, nie mitten im Spiel und nie, wenn du „Werbung entfernen“ gekauft hast. Dafür verarbeitet Google Daten wie IP-Adresse, Geräteinformationen und ${st.adId}, um Werbung auszuliefern, zu messen und Betrug zu verhindern. Beim ersten Start fragt dich die App mit dem Einwilligungsdialog von Google, ob Werbung personalisiert werden darf; du kannst ablehnen und die Wahl jederzeit unter „Datenschutz-Einstellungen (Werbung)“ in den Einstellungen ändern. Ohne Einwilligung zeigt Google nur nicht personalisierte Werbung.</p><p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. a DSGVO (Einwilligung) für personalisierte Werbung, sonst Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der Finanzierung des kostenlosen Spiels). Mehr: policies.google.com/technologies/ads</p>`]);
@@ -28,12 +28,12 @@ export function legalHtml(lang, name, counter, { app = false, ads = false, purch
     return {
       privacy: `<h2>Datenschutz</h2><p class="kit-legal-meta">${n} · Stand: ${STAND.de}</p>${sections(sec)}`,
       imprint: `<h2>Impressum</h2><p class="kit-legal-meta">Angaben gemäß § 5 DDG</p>
-        <section><h3>Kontakt</h3><p>Tobias Wust<br>Vor den Kämpen 20<br>30851 Langenhagen<br>Deutschland</p><p>E-Mail: ${mail}</p></section>
+        <section><h3>Kontakt</h3><p>Little Lift Games<br>Tobias Wust<br>Vor den Kämpen 20<br>30851 Langenhagen<br>Deutschland</p><p>E-Mail: ${mail}</p></section>
         <section><h3>Verantwortlich für den Inhalt</h3><p>Tobias Wust (Anschrift wie oben)</p></section>
-        <section><h3>Über dieses Projekt</h3><p>${n} ist ein privates${ads ? '' : ', nicht-kommerzielles'} Projekt. Wie mit Daten umgegangen wird, steht in der <strong>Datenschutzerklärung</strong>.</p></section>`,
+        <section><h3>Über dieses Projekt</h3><p>${n} ist ein Spiel von Little Lift Games, einer Marke von Tobias Wust, und ein privates${ads ? '' : ', nicht-kommerzielles'} Projekt. Wie mit Daten umgegangen wird, steht in der <strong>Datenschutzerklärung</strong>.</p></section>`,
     };
   }
-  sec.push(['Controller', `<p>Responsible for data processing on this website within the meaning of the General Data Protection Regulation (GDPR):</p><p>Tobias Wust<br>Email: ${mail}</p>`]);
+  sec.push(['Controller', `<p>Responsible for data processing on this website within the meaning of the General Data Protection Regulation (GDPR):</p><p>Tobias Wust (Little Lift Games)<br>Email: ${mail}</p>`]);
   sec.push(['Overview', `<p>${n} is a game that runs entirely in your browser. There are <strong>no accounts${ads ? '' : ', no cookies, no ads'} and no tracking</strong>. Involved are:</p><ul><li><strong>Netlify</strong> delivers the game's files.</li>${counter ? '<li><strong>GoatCounter</strong> counts visits anonymously and without cookies.</li>' : ''}${app ? `<li><strong>${st.title}</strong> distributes the app.</li>` : ''}${ads ? '<li><strong>Google AdMob</strong> occasionally shows ads in the app during breaks in play.</li>' : ''}</ul>${app ? '' : "<p>The link “Buy me a coffee” leads to <strong>Ko-fi</strong> (ko-fi.com). Nothing from Ko-fi is loaded into this page. Ko-fi only processes data once you open the link; Ko-fi's own privacy policy then applies.</p>"}`]);
   if (app) sec.push([`App from ${st.title}`, `<p>The ${st.os} app of ${n} contains the game and works without internet. When a connection is available, it checks at start-up whether there is a newer version of the game and downloads it from our server (Netlify, see below); only technical data such as the IP address is processed. When you download and update it through ${st.store}, ${st.company} processes data under its own privacy policy (${S.policy}). We only receive aggregated statistics from ${st.company}, such as the number of installs and crash reports without personal data.</p>${purchase ? `<p><strong>“Remove ads”:</strong> The purchase is handled by ${st.company} through ${st.store}. We receive no payment details, only the confirmation that the purchase belongs to your ${st.company} account; the app remembers it on the device.</p>` : ''}`]);
   if (ads) sec.push(['Advertising (Google AdMob)', `<p>In the app, Google AdMob occasionally shows full-screen ads during natural breaks in play, never in the middle of a game and never once you have bought “Remove ads”. For this, Google processes data such as your IP address, device information and ${st.adId} to deliver and measure ads and prevent fraud. On first start the app asks, using Google's consent dialog, whether ads may be personalised; you can refuse and change your choice at any time under “Privacy settings (ads)” in the settings. Without consent, Google only shows non-personalised ads.</p><p><strong>Legal basis:</strong> Art. 6(1)(a) GDPR (consent) for personalised ads, otherwise Art. 6(1)(f) GDPR (legitimate interest in funding the free game). More: policies.google.com/technologies/ads</p>`]);
@@ -46,9 +46,9 @@ export function legalHtml(lang, name, counter, { app = false, ads = false, purch
   return {
     privacy: `<h2>Privacy</h2><p class="kit-legal-meta">${n} · Last updated: ${STAND.en}</p>${sections(sec)}`,
     imprint: `<h2>Legal notice</h2><p class="kit-legal-meta">Impressum · Information according to § 5 DDG</p>
-      <section><h3>Contact</h3><p>Tobias Wust<br>Vor den Kämpen 20<br>30851 Langenhagen<br>Germany</p><p>Email: ${mail}</p></section>
+      <section><h3>Contact</h3><p>Little Lift Games<br>Tobias Wust<br>Vor den Kämpen 20<br>30851 Langenhagen<br>Germany</p><p>Email: ${mail}</p></section>
       <section><h3>Responsible for the content</h3><p>Tobias Wust (address as above)</p></section>
-      <section><h3>About this project</h3><p>${n} is a private${ads ? '' : ', non-commercial'} project. How data is handled is described in the <strong>privacy notice</strong>.</p></section>`,
+      <section><h3>About this project</h3><p>${n} is a game by Little Lift Games, a brand of Tobias Wust, and a private${ads ? '' : ', non-commercial'} project. How data is handled is described in the <strong>privacy notice</strong>.</p></section>`,
   };
 }
 

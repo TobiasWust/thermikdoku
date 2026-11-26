@@ -335,7 +335,7 @@ const Kit = {
     $$('[data-kit-footer]').forEach((f) => {
       f.classList.add('kit-footer');
       f.innerHTML = `
-        <p data-kit-feature="madeWith"><span data-i18n="kit.madeWith"></span> <span class="kit-heart">❤️</span> <span data-i18n="kit.by"></span> <a href="https://wust.dev/" target="_blank" rel="noopener noreferrer">Wust</a><span class="kit-install-link" hidden> · <button type="button" data-kit="install" data-i18n="kit.install"></button></span></p>
+        <p data-kit-feature="madeWith"><span data-i18n="kit.madeWith"></span> <span class="kit-heart">❤️</span> <span data-i18n="kit.by"></span> <a href="https://littlelift.games/" target="_blank" rel="noopener noreferrer">Little Lift Games</a><span class="kit-install-link" hidden> · <button type="button" data-kit="install" data-i18n="kit.install"></button></span></p>
         <p class="kit-footer-legal">
           <button type="button" data-kit="privacy" data-i18n="kit.privacy"></button>
           <span aria-hidden="true">·</span>
@@ -389,7 +389,7 @@ const Kit = {
           <span class="kit-app-links" hidden><button type="button" class="kit-link-btn" data-kit="restore" data-i18n="kit.restore" hidden></button><button type="button" class="kit-link-btn" data-kit="ad-consent" data-i18n="kit.adConsent" hidden></button></span>
           <button type="button" class="kit-link-btn kit-app-info" data-kit="app-info" hidden></button>
           <pre class="kit-app-log" hidden></pre>
-          <p class="kit-settings-legal"><span data-kit-feature="madeWith"><span data-i18n="kit.madeWith"></span> ❤️ <span data-i18n="kit.by"></span> <a href="https://wust.dev/" target="_blank" rel="noopener noreferrer">Wust</a> · </span><button type="button" data-kit="privacy" data-i18n="kit.privacy"></button> · <button type="button" data-kit="imprint" data-i18n="kit.imprint"></button><span data-kit-feature="kofi"><br><a class="kit-kofi" href="https://ko-fi.com/tobiaswust" target="_blank" rel="noopener noreferrer" data-kofi="settings" data-i18n="kit.coffeeLong"></a></span></p>
+          <p class="kit-settings-legal"><span data-kit-feature="madeWith"><span data-i18n="kit.madeWith"></span> ❤️ <span data-i18n="kit.by"></span> <a href="https://littlelift.games/" target="_blank" rel="noopener noreferrer">Little Lift Games</a> · </span><button type="button" data-kit="privacy" data-i18n="kit.privacy"></button> · <button type="button" data-kit="imprint" data-i18n="kit.imprint"></button><span data-kit-feature="kofi"><br><a class="kit-kofi" href="https://ko-fi.com/tobiaswust" target="_blank" rel="noopener noreferrer" data-kofi="settings" data-i18n="kit.coffeeLong"></a></span></p>
         </form>
       </dialog>
       <dialog class="kit-dialog" id="kit-reset">

@@ -1,5 +1,5 @@
 {
-  "version": "1.12.0",
+  "version": "1.13.0",
   "files": [
     "kit.js",
     "audio.js",
@@ -12,6 +12,11 @@
     "README.md"
   ],
   "changelog": {
+    "1.13.0": {
+      "changes": "Marke Little Lift Games: Footer und Einstellungen zeigen „Made with ❤️ by Little Lift Games“ mit Link auf littlelift.games statt „Wust“/wust.dev. Datenschutz und Impressum nennen Little Lift Games als Marke von Tobias Wust (Anschrift bleibt), Kontakt-Mail ist jetzt contact@littlelift.games",
+      "advice": "empfohlen",
+      "why": "Die Spiele erscheinen unter der Marke Little Lift Games, auch im Play Store. So passen Spiel, Store-Eintrag und Website zusammen."
+    },
     "1.12.0": {
       "changes": "Zwanzig Sprachen (en, de, es, fr, pt, it, ja, ko, tr, id, ru, pl, nl, zh, vi, th, ar, hi, uk, sv; zh = Chinesisch in Langzeichen für Taiwan und Hongkong) als KIT_LANGUAGES, Standard für Kit.init. Die Sprache folgt dem Browser (pt-BR → pt), Englisch ist der Rückfall, auch für einzelne fehlende Texte. Wer sie in den Einstellungen selbst wählt, behält seine Wahl; automatisch gewählte Sprachen werden bei jedem Start neu bestimmt, damit neue Sprachen ankommen. Datenschutz und Impressum bleiben Deutsch (für Deutsch) oder Englisch (alle anderen).",
       "advice": "empfohlen",

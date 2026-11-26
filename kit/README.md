@@ -169,7 +169,7 @@ Die Bewegung steckt in den Frames: zusätzliches Wippen, Kippen oder Stauchen im
 
 Die **Werft** (`../werft`) baut ein Spiel als Android-App (Capacitor): Die Spieldateien liegen in der App, dazu `werft.js` (AdMob, Google-Play-Kauf, Einwilligung, Live-Updates). Das Kit erkennt die App an `window.Werft.app` (`Kit.app === 'play'`, Klasse `kit-app` am `<html>`) und
 
-- blendet Ko-fi, „Als App installieren“ und den Wust-Link aus (Klasse `kit-no-app`),
+- blendet Ko-fi, „Als App installieren“ und den Little-Lift-Games-Link aus (Klasse `kit-no-app`),
 - zeigt in den Einstellungen „Werbung entfernen – {Preis}“, „Käufe wiederherstellen“ und „Datenschutz-Einstellungen (Werbung)“, sobald die App das anbietet,
 - zeigt einen Datenschutztext mit AdMob und Kauf, registriert keinen Service Worker und zählt Aufrufe unter `/<id>/app/…`.
 - zeigt unten in den Einstellungen die Version (Live-Update); Antippen zeigt Build, Werft- und Kit-Version und das Werft-Protokoll (`Werft.log`: Start, Live-Updates, Werbepausen), Kit 1.11.2/1.11.3.

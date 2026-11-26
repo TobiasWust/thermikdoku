@@ -41,7 +41,7 @@
     "uk",
     "sv"
   ],
-  "kitVersion": "1.12.0",
+  "kitVersion": "1.13.0",
   "createdAt": "2026-11-20T11:40:29+01:00",
   "deploy": {
     "url": "https://thermikdoku.de",
