@@ -149,5 +149,7 @@
   "wind.menu": "Voltar ao menu",
   "new.title": "Recomeçar?",
   "new.clear": "Limpar tabuleiro",
-  "new.other": "Outro quebra-cabeça"
+  "new.other": "Outro quebra-cabeça",
+  "extra.autoX": "× automáticos",
+  "extra.autoX.hint": "Mostrar casas bloqueadas"
 }

@@ -149,5 +149,7 @@
   "wind.menu": "Menüye dön",
   "new.title": "Baştan başlansın mı?",
   "new.clear": "Tahtayı temizle",
-  "new.other": "Başka bulmaca"
+  "new.other": "Başka bulmaca",
+  "extra.autoX": "Otomatik ×",
+  "extra.autoX.hint": "Engelli kareleri göster"
 }

@@ -149,5 +149,7 @@
   "wind.menu": "Till menyn",
   "new.title": "Börja om?",
   "new.clear": "Rensa brädet",
-  "new.other": "Annat pussel"
+  "new.other": "Annat pussel",
+  "extra.autoX": "Automatiska ×",
+  "extra.autoX.hint": "Visa blockerade rutor"
 }

@@ -149,5 +149,7 @@
   "wind.menu": "Zum Menü",
   "new.title": "Neu starten?",
   "new.clear": "Brett leeren",
-  "new.other": "Anderes Rätsel"
+  "new.other": "Anderes Rätsel",
+  "extra.autoX": "Automatische ×",
+  "extra.autoX.hint": "Blockierte Felder anzeigen"
 }

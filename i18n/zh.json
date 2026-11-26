@@ -149,5 +149,7 @@
   "wind.menu": "返回選單",
   "new.title": "要重新開始嗎？",
   "new.clear": "清空盤面",
-  "new.other": "換一題"
+  "new.other": "換一題",
+  "extra.autoX": "自動標記 ×",
+  "extra.autoX.hint": "顯示不能放的格子"
 }

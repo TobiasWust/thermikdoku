@@ -149,5 +149,7 @@
   "wind.menu": "Do menu",
   "new.title": "Zacząć od nowa?",
   "new.clear": "Wyczyść planszę",
-  "new.other": "Inna łamigłówka"
+  "new.other": "Inna łamigłówka",
+  "extra.autoX": "Automatyczne ×",
+  "extra.autoX.hint": "Pokazuj zablokowane pola"
 }

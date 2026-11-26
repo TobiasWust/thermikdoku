@@ -149,5 +149,7 @@
   "wind.menu": "Về menu",
   "new.title": "Bắt đầu lại?",
   "new.clear": "Xóa bảng",
-  "new.other": "Câu đố khác"
+  "new.other": "Câu đố khác",
+  "extra.autoX": "Tự động đánh ×",
+  "extra.autoX.hint": "Hiện các ô bị chặn"
 }

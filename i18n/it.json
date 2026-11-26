@@ -149,5 +149,7 @@
   "wind.menu": "Torna al menu",
   "new.title": "Ricominciare?",
   "new.clear": "Svuota la griglia",
-  "new.other": "Altro puzzle"
+  "new.other": "Altro puzzle",
+  "extra.autoX": "× automatiche",
+  "extra.autoX.hint": "Mostra le caselle bloccate"
 }

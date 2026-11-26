@@ -149,5 +149,7 @@
   "wind.menu": "Retour au menu",
   "new.title": "Recommencer ?",
   "new.clear": "Vider la grille",
-  "new.other": "Autre puzzle"
+  "new.other": "Autre puzzle",
+  "extra.autoX": "× automatiques",
+  "extra.autoX.hint": "Afficher les cases bloquées"
 }

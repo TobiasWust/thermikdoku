@@ -149,5 +149,7 @@
   "wind.menu": "メニューへ",
   "new.title": "やり直す？",
   "new.clear": "盤面をクリア",
-  "new.other": "別のパズル"
+  "new.other": "別のパズル",
+  "extra.autoX": "自動で×",
+  "extra.autoX.hint": "置けないマスを表示"
 }

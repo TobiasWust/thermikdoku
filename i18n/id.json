@@ -149,5 +149,7 @@
   "wind.menu": "Ke menu",
   "new.title": "Mulai ulang?",
   "new.clear": "Kosongkan papan",
-  "new.other": "Teka-teki lain"
+  "new.other": "Teka-teki lain",
+  "extra.autoX": "× otomatis",
+  "extra.autoX.hint": "Tampilkan kotak yang terblokir"
 }

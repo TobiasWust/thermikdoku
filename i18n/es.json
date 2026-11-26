@@ -149,5 +149,7 @@
   "wind.menu": "Volver al menú",
   "new.title": "¿Empezar de nuevo?",
   "new.clear": "Vaciar tablero",
-  "new.other": "Otro puzle"
+  "new.other": "Otro puzle",
+  "extra.autoX": "× automáticas",
+  "extra.autoX.hint": "Mostrar casillas bloqueadas"
 }

@@ -149,5 +149,7 @@
   "wind.menu": "Naar het menu",
   "new.title": "Opnieuw beginnen?",
   "new.clear": "Bord leegmaken",
-  "new.other": "Andere puzzel"
+  "new.other": "Andere puzzel",
+  "extra.autoX": "Automatische ×",
+  "extra.autoX.hint": "Geblokkeerde vakjes tonen"
 }

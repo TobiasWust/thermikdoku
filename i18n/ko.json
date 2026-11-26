@@ -149,5 +149,7 @@
   "wind.menu": "메뉴로",
   "new.title": "새로 시작할까요?",
   "new.clear": "판 비우기",
-  "new.other": "다른 퍼즐"
+  "new.other": "다른 퍼즐",
+  "extra.autoX": "자동 ×",
+  "extra.autoX.hint": "막힌 칸 표시"
 }

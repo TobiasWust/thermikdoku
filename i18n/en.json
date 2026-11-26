@@ -149,5 +149,7 @@
   "wind.menu": "Back to menu",
   "new.title": "Start over?",
   "new.clear": "Clear board",
-  "new.other": "Different puzzle"
+  "new.other": "Different puzzle",
+  "extra.autoX": "Automatic ×",
+  "extra.autoX.hint": "Show blocked cells"
 }
