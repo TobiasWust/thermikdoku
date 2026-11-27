@@ -26,5 +26,14 @@
     "sv"
   ],
   "description": "Kawaii-Logikrätsel mit Gleitschirmen: ein Schirm pro Reihe, Spalte und Thermik-Zone, ohne dass sie sich berühren. Unendlich viele Rätsel, offline spielbar.",
-  "ads": true
+  "ads": true,
+  "account": "tobias",
+  "admob": {
+    "appId": "ca-app-pub-2884105138688658~5453629816",
+    "interstitial": "ca-app-pub-2884105138688658/2827466475"
+  },
+  "removeAds": {
+    "productId": "remove_ads",
+    "price": "1.99 EUR"
+  }
 }
